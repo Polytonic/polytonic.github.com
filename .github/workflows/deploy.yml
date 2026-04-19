@@ -1,0 +1,54 @@
+name: Deploy to GitHub Pages
+
+on:
+    push:
+        branches: [master]
+
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+concurrency:
+    group: pages
+    cancel-in-progress: true
+
+jobs:
+    deploy:
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  lfs: true
+
+            - uses: oven-sh/setup-bun@v2
+
+            - run: bun install
+
+            - run: bun run build
+
+            # Copy static assets into dist
+            - name: Copy static assets
+              run: |
+                  cp -r content/uploads dist/uploads
+                  cp -r content/portfolio/assets dist/portfolio/assets
+                  mkdir -p dist/portfolio/documents
+                  cp content/portfolio/documents/*.pdf dist/portfolio/documents/
+                  cp -r content/portfolio/fidelis dist/portfolio/fidelis
+                  cp -r content/portfolio/winter dist/portfolio/winter
+                  cp -r content/portfolio/overburdened dist/portfolio/overburdened
+                  cp -r content/portfolio/hunt-and-peck dist/portfolio/hunt-and-peck
+                  cp browser/avatar.jpg dist/avatar.jpg
+                  cp dist/index.html dist/404.html
+
+            - uses: actions/configure-pages@v5
+
+            - uses: actions/upload-pages-artifact@v3
+              with:
+                  path: dist
+
+            - uses: actions/deploy-pages@v4
+              id: deployment

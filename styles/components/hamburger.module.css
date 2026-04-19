@@ -1,0 +1,165 @@
+/* Hamburger animation timing */
+:root {
+    --hamburger-speed: 0.4s;
+    --menu-offset: 5vw;
+}
+
+@keyframes bounce {
+    0%   { transform: scale(0.0); }
+    60%  { transform: scale(1.2); }
+    100% { transform: scale(1.0); }
+}
+
+@keyframes slide {
+    0%   { transform: translateX(7rem); }
+    100% { transform: translateX(0); }
+}
+
+/* Container */
+.container {}
+
+.container.fixed .menu {
+    max-width: 12rem;
+}
+
+/* Hamburger button: three bars */
+.button {
+    background-color: var(--color-surface);
+    border-radius: 0.125rem;
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+    position: fixed;
+    top: 1.5rem;
+    right: var(--menu-offset);
+    height: 2.75rem;
+    width: 2.75rem;
+    z-index: 20;
+    display: block;
+    text-decoration: none;
+}
+
+@media (hover: hover) {
+    .button:hover {
+        background-color: color-mix(in srgb, var(--color-surface) 95%, var(--color-text));
+    }
+}
+
+/* Three-bar icon */
+.button span {
+    position: absolute;
+    display: block;
+    width: 20px;
+    height: 3px;
+    background: var(--color-accent);
+    top: 50%;
+    left: 50%;
+    margin: -1px -10px;
+    transition: background var(--hamburger-speed), transform var(--hamburger-speed);
+    transform: rotate(0deg);
+}
+
+.button span::before,
+.button span::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    background: var(--color-accent);
+    width: 100%;
+    height: 100%;
+    transition: transform var(--hamburger-speed);
+}
+
+.button span::before {
+    transform: rotate(180deg);
+    top: -6px;
+}
+
+.button span::after {
+    transform: rotate(180deg);
+    bottom: -6px;
+}
+
+/* X shape when expanded */
+.buttonExpanded span {
+    background: transparent;
+    transform: rotate(180deg);
+    transition: transform var(--hamburger-speed);
+}
+
+.buttonExpanded span::before {
+    transform: rotate(-45deg);
+    top: 0;
+}
+
+.buttonExpanded span::after {
+    transform: rotate(45deg);
+    bottom: 0;
+}
+
+/* Slide-in menu */
+.menu {
+    border-radius: 0.125rem;
+    box-shadow: var(--shadow-soft);
+    width: calc(100vw - 2 * var(--menu-offset));
+    position: fixed;
+    right: var(--menu-offset);
+    top: 4.5rem;
+    background-color: var(--color-surface);
+    visibility: hidden;
+    overflow: hidden;
+    transform: scale(0);
+    transform-origin: 100% 0%;
+    transition: transform var(--hamburger-speed), visibility var(--hamburger-speed);
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    z-index: 20;
+}
+
+.menuVisible {
+    visibility: visible;
+    transform: scale(1);
+    transition: transform var(--hamburger-speed), visibility var(--hamburger-speed);
+}
+
+.menuVisible li {
+    animation: slide 0.3s ease-out both;
+}
+
+/* Menu links */
+.menu li:last-child a {
+    border-bottom: none;
+}
+
+.menu li a {
+    display: block;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-accent);
+    font-weight: 700;
+    text-decoration: none;
+    transition: all calc(var(--hamburger-speed) * 0.75);
+}
+
+@media (hover: hover) {
+    .menu li a:hover {
+        color: var(--color-accent-hover);
+        background-color: color-mix(in srgb, var(--color-surface) 95%, var(--color-text));
+    }
+}
+
+/* Desktop: hidden by default, bounces in when fixed */
+@media only screen and (min-width: 568px) {
+    .button {
+        visibility: hidden;
+        transform: scale(0);
+        transition: transform var(--hamburger-speed), visibility var(--hamburger-speed);
+    }
+
+    .fixed .button {
+        visibility: visible;
+        transform: scale(1);
+        animation: bounce var(--hamburger-speed) ease-in-out;
+        transition: all var(--hamburger-speed);
+    }
+}

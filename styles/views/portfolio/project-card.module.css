@@ -1,0 +1,68 @@
+.card {
+    background-color: var(--color-surface);
+    margin: 0.75rem;
+    border-radius: 2px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+@media only screen and (min-width: 768px) {
+    .card {
+        margin: 1rem;
+    }
+}
+
+.image {
+    width: 100%;
+    display: block;
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 1px 1px color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.content {
+    padding: 1rem;
+    padding-bottom: 0;
+    flex: 1;
+    color: var(--color-text);
+}
+
+.content :global(.markdown-body) p {
+    padding-bottom: 1.25rem;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.title {
+    font-size: 18px;
+    color: var(--color-accent);
+    text-align: center;
+    margin: 0;
+}
+
+.subtitle {
+    color: var(--color-text-muted);
+    text-align: center;
+    margin: 0;
+    font-size: 14px;
+}
+
+.links {
+    margin: 1rem;
+    padding-bottom: 0.5rem;
+    text-align: center;
+}
+
+.disabled {
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@media (hover: hover) {
+    .disabled:hover {
+        color: var(--color-text-muted);
+    }
+}

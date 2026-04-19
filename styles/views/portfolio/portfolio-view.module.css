@@ -1,0 +1,93 @@
+/* Table of contents wrapper: matches original 1024px max-width */
+.tableOfContents {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    max-width: 1024px;
+    width: 90vw;
+    margin: 0 auto;
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.pageTitle {
+    font-size: 28px;
+    margin-bottom: 0.75em;
+}
+
+.sectionTitle {
+    font-size: 22px;
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+}
+
+.professional {
+    margin-bottom: 1em;
+}
+
+.professional p,
+.undergraduate p {
+    line-height: 1.7;
+    margin-left: 0.25rem;
+}
+
+.toc {
+    margin: 1em 0 2em;
+}
+
+.toc ul {
+    list-style: square;
+    padding-left: 1.5em;
+    columns: 4;
+    column-gap: 2em;
+}
+
+.toc li {
+    padding: 0.25em 0;
+    break-inside: avoid;
+    color: var(--color-text-muted);
+}
+
+.toc a {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* Dark background grid area, matching original */
+.gridWrapper {
+    background-color: var(--color-text);
+    width: 100%;
+    margin: 1.5rem auto;
+    padding: 0.25rem;
+}
+
+.grid {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0;
+}
+
+@media only screen and (min-width: 768px) {
+    .gridWrapper {
+        margin: 0 auto;
+        padding: 1rem;
+    }
+}
+
+@media only screen and (max-width: 1440px) {
+    .toc ul { columns: 4; }
+}
+@media only screen and (max-width: 1170px) {
+    .toc ul { columns: 3; }
+}
+@media only screen and (max-width: 768px) {
+    .toc ul { columns: 2; }
+}
+@media only screen and (max-width: 568px) {
+    .toc ul { columns: 1; }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}

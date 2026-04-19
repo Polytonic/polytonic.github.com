@@ -1,0 +1,78 @@
+/* Blog article card - matches original entry.styl */
+.article {
+    background: var(--color-background);
+    padding-top: 1.5rem;
+    margin: 0 auto;
+    width: 90vw;
+    max-width: 640px;
+    color: var(--color-text);
+    margin-bottom: 2rem;
+}
+
+.article pre,
+.article iframe {
+    margin-bottom: 1.6rem;
+}
+
+.article img {
+    display: block;
+    margin: 0 auto;
+}
+
+.header {
+    margin-bottom: 1rem;
+}
+
+.title {
+    font-size: 22px;
+    margin-bottom: 0.25rem;
+    line-height: 2.25rem;
+}
+
+.title a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color 0.15s ease-out;
+}
+
+@media (hover: hover) {
+    .title a:hover {
+        color: var(--color-accent);
+    }
+}
+
+.title a:active {
+    color: var(--color-accent-press);
+}
+
+.meta {
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    margin-left: 0.1rem;
+}
+
+.splash {
+    padding-bottom: 1.25rem;
+    width: 100%;
+}
+
+.preview {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.readMore {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    display: inline-block;
+    padding-bottom: 1.5rem;
+}
+
+@media only screen and (min-width: 860px) {
+    .article {
+        max-width: 768px;
+        padding-left: 10rem;
+    }
+}

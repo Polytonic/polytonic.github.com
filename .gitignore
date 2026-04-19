@@ -1,2 +1,9 @@
-bower_components/
 node_modules/
+bower_components/
+dist/
+.parcel-cache/
+bun.lock
+
+# Generated content modules (rebuilt from content/ markdown)
+source/content/posts.ts
+source/content/portfolio.ts

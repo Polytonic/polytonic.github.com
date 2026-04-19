@@ -1,0 +1,43 @@
+.footer {
+    padding: 1.5rem;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.footer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer li {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.footer li + li::before {
+    content: "\25A0";
+    margin-bottom: 0.25rem;
+    color: var(--color-text-muted);
+    font-size: 0.5em;
+    vertical-align: middle;
+}
+
+.footer a {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    display: inline-block;
+    margin: 0 1rem 1rem;
+    text-decoration: none;
+}
+
+.footer p {
+    font-family: var(--font-body);
+    font-weight: 700;
+    margin: 0;
+    padding: 0;
+    line-height: 1.75rem;
+    color: var(--color-text-muted);
+}

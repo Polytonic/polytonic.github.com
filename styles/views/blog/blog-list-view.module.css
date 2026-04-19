@@ -1,0 +1,21 @@
+.entry {
+    width: 100%;
+    background-color: var(--color-background);
+    padding-bottom: 2rem;
+}
+
+.yearHeader {
+    text-align: center;
+    font-size: 18px;
+    color: var(--color-text-muted);
+    margin: 2em 0 1em;
+    padding-bottom: 0.5em;
+}
+
+.disclaimer {
+    color: var(--color-text-muted);
+    text-align: center;
+    margin: 0 auto;
+    width: 90vw;
+    max-width: 640px;
+}

@@ -1,0 +1,32 @@
+.entry {
+    width: 100%;
+    background-color: var(--color-background);
+    padding-bottom: 2rem;
+}
+
+.archive {
+    margin: 0 auto;
+    width: 90vw;
+    max-width: 440px;
+    padding-top: 1.5rem;
+}
+
+.archive h1 {
+    font-family: var(--font-body);
+    margin-left: 0.25rem;
+}
+
+.archive ul {
+    margin-left: 1rem;
+}
+
+.archive li {
+    list-style: square;
+    color: var(--color-text-muted);
+    line-height: 2;
+}
+
+.archive a {
+    font-family: var(--font-heading);
+    font-weight: 700;
+}

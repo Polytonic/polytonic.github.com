@@ -1,0 +1,171 @@
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+input, button, select, textarea { font: inherit; }
+
+/* Design tokens: Grolleg color scheme */
+:root {
+    --color-accent: #386B8C;
+    --color-accent-hover: #4A83A8;
+    --color-accent-press: #2C5570;
+
+    --color-text: #2D2D32;
+    --color-text-muted: #6B6B70;
+    --color-text-inverse: #E6E6DC;
+
+    --color-background: #E8E9E1;
+    --color-surface: #FFFFFF;
+    --color-border: #C8C9C1;
+
+    --color-error: #D71910;
+
+    --shadow-soft: 0 0 0.5rem color-mix(in srgb, var(--color-text) 15%, transparent);
+    --shadow-card: 0 0.1rem 0.5rem color-mix(in srgb, var(--color-text) 25%, transparent);
+
+    --font-heading: "Segoe UI", system-ui, sans-serif;
+    --font-body: "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+/* Base typography */
+html {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-text);
+    background: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 0.5em;
+}
+
+h1 { font-size: 28px; }
+h2 { font-size: 22px; }
+h3 { font-size: 18px; }
+
+p {
+    margin: 0 0 1em;
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+@media (hover: hover) {
+    a:hover { color: var(--color-accent-hover); }
+}
+
+a:active { color: var(--color-accent-press); }
+
+/* Keyboard focus ring for all interactive elements */
+:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+code, pre {
+    font-family: var(--font-mono);
+    font-size: 14px;
+}
+
+pre {
+    background: var(--color-text);
+    color: var(--color-text-inverse);
+    padding: 1em;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0 0 1em;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+}
+
+code {
+    background: var(--color-border);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 3px solid var(--color-accent);
+    margin: 0 0 1em;
+    padding: 0.5em 1em;
+    color: var(--color-text-muted);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 0 1em;
+}
+
+th, td {
+    border: 1px solid var(--color-border);
+    padding: 0.5em 0.75em;
+    text-align: left;
+}
+
+th {
+    background: var(--color-surface);
+    font-weight: 600;
+}
+
+/* Shared cutout button atom */
+.cutout {
+    border: 0.24rem solid;
+    color: var(--color-accent);
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 900;
+    margin: auto 0.8rem;
+    min-width: 4rem;
+    padding: 0.05rem 0.4rem;
+    text-align: center;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.15s ease-out;
+}
+
+.cutout:link,
+.cutout:visited,
+.cutout:active,
+.cutout:focus {
+    font-weight: 900;
+}
+
+@media (hover: hover) {
+    .cutout:hover {
+        color: var(--color-accent-hover);
+        text-decoration: none;
+    }
+}
+
+.cutout:active {
+    color: var(--color-accent-press);
+}
