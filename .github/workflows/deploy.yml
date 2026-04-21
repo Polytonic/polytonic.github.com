@@ -30,19 +30,10 @@ jobs:
 
             - run: bun run build
 
-            # Copy static assets into dist
-            - name: Copy static assets
-              run: |
-                  cp -r content/uploads dist/uploads
-                  cp -r content/portfolio/assets dist/portfolio/assets
-                  mkdir -p dist/portfolio/documents
-                  cp content/portfolio/documents/*.pdf dist/portfolio/documents/
-                  cp -r content/portfolio/fidelis dist/portfolio/fidelis
-                  cp -r content/portfolio/winter dist/portfolio/winter
-                  cp -r content/portfolio/overburdened dist/portfolio/overburdened
-                  cp -r content/portfolio/hunt-and-peck dist/portfolio/hunt-and-peck
-                  cp browser/avatar.jpg dist/avatar.jpg
-                  cp dist/index.html dist/404.html
+            # SPA fallback: GitHub Pages serves 404.html for unknown paths,
+            # which lets Mithril's router handle deep links on direct load.
+            - name: Copy index.html to 404.html
+              run: cp dist/index.html dist/404.html
 
             - uses: actions/configure-pages@v5
 

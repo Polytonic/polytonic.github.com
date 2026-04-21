@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "fs"
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, copyFileSync } from "fs"
 import { join, resolve } from "path"
 import { marked } from "marked"
 
@@ -34,10 +34,20 @@ function rewriteLinks(html: string): string {
 }
 
 const ROOT = resolve(import.meta.dir, "..")
-const POSTS_DIR = join(ROOT, "content", "posts")
-const PORTFOLIO_DIR = join(ROOT, "content", "portfolio")
+const CONTENT_DIR = join(ROOT, "content")
+const POSTS_DIR = join(CONTENT_DIR, "posts")
+const PORTFOLIO_DIR = join(CONTENT_DIR, "portfolio")
 const OUTPUT_DIR = join(ROOT, "source", "content")
 const DIST_DIR = join(ROOT, "dist")
+
+// Portfolio link values in frontmatter are authored as relative paths
+// (e.g. `fidelis/`, `documents/goliath.pdf`). Rewrite to absolute so they
+// resolve regardless of which SPA route renders the card.
+function normalizePortfolioLink(value: string): string {
+    if (value.startsWith("http://") || value.startsWith("https://")) return value
+    if (value.startsWith("mailto:") || value.startsWith("/")) return value
+    return `/portfolio/${value}`
+}
 
 // Front matter parser: splits YAML header from markdown body
 function parseFrontMatter(raw: string): { attributes: Record<string, unknown>; body: string } {
@@ -227,7 +237,11 @@ function buildPortfolio(): void {
         const title = attributes.title as string
         const subtitle = (attributes.subtitle as string) ?? ""
         const image = (attributes.image as string) ?? null
-        const links = (attributes.links as Record<string, string>) ?? {}
+        const rawLinks = (attributes.links as Record<string, string>) ?? {}
+        const links: Record<string, string> = {}
+        for (const [label, url] of Object.entries(rawLinks)) {
+            links[label] = normalizePortfolioLink(url)
+        }
 
         lines.push(`    {`)
         lines.push(`        title: ${JSON.stringify(title)},`)
@@ -289,6 +303,37 @@ function escapeXml(text: string): string {
         .replace(/"/g, "&quot;")
 }
 
+// Copy content-authored static assets into dist so Parcel's hashed bundles
+// share the output tree with post uploads, portfolio media, legacy games,
+// and the avatar. Unifies local and CI builds.
+function copyStaticAssets(): void {
+    if (!existsSync(DIST_DIR)) mkdirSync(DIST_DIR, { recursive: true })
+
+    cpSync(join(CONTENT_DIR, "uploads"), join(DIST_DIR, "uploads"), { recursive: true })
+    cpSync(join(CONTENT_DIR, "portfolio/assets"), join(DIST_DIR, "portfolio/assets"), { recursive: true })
+
+    // Only ship PDFs from portfolio/documents; the .indd source file is 1.5 MB
+    // and has no web use.
+    cpSync(
+        join(CONTENT_DIR, "portfolio/documents"),
+        join(DIST_DIR, "portfolio/documents"),
+        { recursive: true, filter: (source) => !source.endsWith(".indd") },
+    )
+
+    // Legacy Twine/Unity game bundles. Fidelis still works; the three Unity
+    // games show a disabled Play button but the pages themselves remain.
+    for (const slug of ["fidelis", "winter", "overburdened", "hunt-and-peck"]) {
+        cpSync(join(CONTENT_DIR, "portfolio", slug), join(DIST_DIR, "portfolio", slug), { recursive: true })
+    }
+
+    // Avatar currently lives in the legacy browser/ tree; move to a non-legacy
+    // location when that directory is removed.
+    copyFileSync(join(ROOT, "browser/avatar.jpg"), join(DIST_DIR, "avatar.jpg"))
+
+    console.log("Copied static assets")
+}
+
 // Run
 buildPosts()
 buildPortfolio()
+copyStaticAssets()
