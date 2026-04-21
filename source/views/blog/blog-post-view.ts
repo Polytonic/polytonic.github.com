@@ -20,8 +20,6 @@ export const BlogPostView: m.Component = {
             )
         }
 
-        document.title = `${post.title} | TinyCranes`
-
         return m(Layout, [
             m("div", { class: styles.entry }, [
                 m(PostCard, { post, expanded: true }),
