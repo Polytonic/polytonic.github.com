@@ -21,6 +21,48 @@ if (currentPath.length > 1 && currentPath.endsWith("/")) {
 
 const root = document.getElementById("app")!
 
+// Intercept clicks on plain same-origin anchors so the SPA handles internal
+// navigation without a full page reload. m.route.Link already does this for
+// vnodes we generate, but author-authored HTML rendered via m.trust emits
+// plain <a> tags that would otherwise trigger native navigation through the
+// GH Pages 404-as-index-html fallback.
+function isInternalSPAPath(path: string): boolean {
+    // SPA routes have no file extension and are under /, /blog, or /portfolio.
+    // Standalone pages like /portfolio/fidelis/index.html and static assets
+    // (/portfolio/assets/foo.png, /uploads/bar.png) must pass through.
+    if (path === "/" || path === "/portfolio") return true
+    if (!path.startsWith("/blog")) return false
+    if (/\.[a-z0-9]{1,5}$/i.test(path)) return false
+    // Only /blog, /blog/archive, /blog/latest, /blog/YYYY[/MM[/slug]]
+    return /^\/blog(?:$|\/archive$|\/latest$|\/\d{4}(?:\/\d{2}(?:\/[a-z0-9-]+)?)?$)/.test(path)
+}
+
+document.addEventListener("click", (event) => {
+    if (event.defaultPrevented) return
+    if (event.button !== 0) return
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+    let node: HTMLElement | null = event.target as HTMLElement | null
+    while (node && node.tagName !== "A") node = node.parentElement
+    if (!node) return
+    const anchor = node as HTMLAnchorElement
+
+    if (anchor.target && anchor.target !== "_self") return
+    if (anchor.hasAttribute("download")) return
+
+    const raw = anchor.getAttribute("href")
+    if (!raw) return
+    if (raw.startsWith("#")) return // native in-page anchor scroll
+
+    // Use the anchor's resolved URL to uniformly handle relative and absolute hrefs.
+    const url = new URL(anchor.href)
+    if (url.origin !== window.location.origin) return
+    if (!isInternalSPAPath(url.pathname)) return
+
+    event.preventDefault()
+    m.route.set(url.pathname + url.search + url.hash)
+})
+
 // Per-route document metadata
 interface PageMeta {
     title?: string        // Route-specific title segment; joined as "{title} \u2022 TinyCranes"
