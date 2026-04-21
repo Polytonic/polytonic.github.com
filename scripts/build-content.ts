@@ -264,34 +264,54 @@ function buildPortfolio(): void {
 function buildRssFeed(posts: Array<Record<string, unknown>>): void {
     if (!existsSync(DIST_DIR)) mkdirSync(DIST_DIR, { recursive: true })
 
-    const items = posts.slice(0, 20).map(post => {
-        const link = `https://www.tinycranes.com/blog/${post.year}/${post.month}/${post.slug}/`
+    const feedUrl = "https://www.tinycranes.com/feed.xml"
+    const managingEditor = "kfung@tinycranes.com (Kevin Fung)"
+
+    const recentPosts = posts.slice(0, 20)
+    // Pin lastBuildDate to the newest post so unrelated CI runs don't produce
+    // phantom feed updates.
+    const lastBuildDate = recentPosts[0]
+        ? new Date(recentPosts[0].datetime as string).toUTCString()
+        : new Date(0).toUTCString()
+
+    const items = recentPosts.map(post => {
+        // No trailing slash: matches the SPA's canonical form (index.ts strips
+        // trailing slashes), so feed-reader clicks land on the canonical URL.
+        const link = `https://www.tinycranes.com/blog/${post.year}/${post.month}/${post.slug}`
+        // CDATA cannot contain a literal `]]>`; split any occurrence.
+        const body = (post.body as string).replaceAll("]]>", "]]]]><![CDATA[>")
         return [
             `        <item>`,
             `            <title>${escapeXml(post.title as string)}</title>`,
             `            <link>${link}</link>`,
-            `            <guid>${link}</guid>`,
+            `            <guid isPermaLink="true">${link}</guid>`,
             `            <pubDate>${new Date(post.datetime as string).toUTCString()}</pubDate>`,
+            `            <author>${escapeXml(managingEditor)}</author>`,
             `            <description>${escapeXml(post.description as string)}</description>`,
+            `            <content:encoded><![CDATA[${body}]]></content:encoded>`,
             `        </item>`,
         ].join("\n")
     })
 
     const feed = [
         `<?xml version="1.0" encoding="UTF-8"?>`,
-        `<rss version="2.0">`,
+        `<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">`,
         `    <channel>`,
         `        <title>TinyCranes</title>`,
         `        <link>https://www.tinycranes.com</link>`,
+        `        <atom:link href="${feedUrl}" rel="self" type="application/rss+xml" />`,
         `        <description>Software design and development by Kevin Fung</description>`,
         `        <language>en-us</language>`,
-        `        <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
+        `        <managingEditor>${escapeXml(managingEditor)}</managingEditor>`,
+        `        <lastBuildDate>${lastBuildDate}</lastBuildDate>`,
         ...items,
         `    </channel>`,
         `</rss>`,
     ].join("\n")
 
     writeFileSync(join(DIST_DIR, "feed.xml"), feed)
+    // Preserve the pre-migration URL for existing subscribers.
+    writeFileSync(join(DIST_DIR, "rss.xml"), feed)
     console.log("Built RSS feed")
 }
 

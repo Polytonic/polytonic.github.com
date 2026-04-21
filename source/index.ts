@@ -11,19 +11,12 @@ import { NotFoundView } from "./views/not-found-view"
 m.route.prefix = ""
 
 // Normalize trailing slashes: redirect /blog/ to /blog, etc.
-// This preserves compatibility with old-style URLs
+// This preserves compatibility with old-style URLs.
 const currentPath = window.location.pathname
 if (currentPath.length > 1 && currentPath.endsWith("/")) {
-    window.history.replaceState(null, "", currentPath.slice(0, -1) + window.location.hash)
+    const normalized = currentPath.slice(0, -1) + window.location.search + window.location.hash
+    window.history.replaceState(null, "", normalized)
 }
-
-// Inject RSS autodiscovery link
-const rssLink = document.createElement("link")
-rssLink.rel = "alternate"
-rssLink.type = "application/rss+xml"
-rssLink.title = "TinyCranes RSS"
-rssLink.href = "/feed.xml"
-document.head.appendChild(rssLink)
 
 const root = document.getElementById("app")!
 
