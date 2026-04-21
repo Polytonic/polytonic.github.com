@@ -21,14 +21,22 @@ function preprocessMarkdown(body: string): string {
 }
 
 // Rewrite internal links for the SPA:
-// - Strip trailing slashes from /blog/... paths
+// - Strip trailing slashes from /blog/... paths (including before #fragment / ?query)
 // - Convert absolute tinycranes.com URLs to relative paths
 function rewriteLinks(html: string): string {
-    // Absolute tinycranes.com URLs to relative
-    html = html.replace(/https?:\/\/(?:www\.)?tinycranes\.com(\/[^"]*)/g, "$1")
+    // Absolute tinycranes.com URLs to relative. Scoped to href="..." so text
+    // that happens to reference the domain literally (e.g. in <code> blocks)
+    // isn't silently rewritten.
+    html = html.replace(/href="https?:\/\/(?:www\.)?tinycranes\.com(\/[^"]*)"/g, 'href="$1"')
 
-    // Strip trailing slashes from internal /blog/ links
-    html = html.replace(/href="(\/blog\/[^"]*?)\/"/g, 'href="$1"')
+    // Strip a trailing slash from internal /blog/ links. Must handle three shapes:
+    //   href="/blog/foo/"       -> href="/blog/foo"
+    //   href="/blog/foo/#anchor" -> href="/blog/foo#anchor"
+    //   href="/blog/foo/?q=1"    -> href="/blog/foo?q=1"
+    // The lookahead keeps the following delimiter in place; without it, links
+    // with fragments or query strings slipped through and hit the GH Pages
+    // 404-as-index-html fallback, forcing a full page reload.
+    html = html.replace(/href="(\/blog\/[^"#?]*?)\/(?=[#?"])/g, 'href="$1')
 
     return html
 }
@@ -39,6 +47,11 @@ const POSTS_DIR = join(CONTENT_DIR, "posts")
 const PORTFOLIO_DIR = join(CONTENT_DIR, "portfolio")
 const OUTPUT_DIR = join(ROOT, "source", "content")
 const DIST_DIR = join(ROOT, "dist")
+
+// Canonical site timezone. Matches the pre-migration Heroku deployment so that
+// posts authored around midnight local time keep their original day in the URL.
+// Both the build and the DateDisplay runtime component resolve dates in this zone.
+export const CANONICAL_TZ = "America/New_York"
 
 // Portfolio link values in frontmatter are authored as relative paths
 // (e.g. `fidelis/`, `documents/goliath.pdf`). Rewrite to absolute so they
@@ -131,6 +144,35 @@ const MONTH_NAMES = [
     "July", "August", "September", "October", "November", "December",
 ]
 
+// Render the first markdown paragraph, strip HTML tags, collapse whitespace,
+// truncate to `max` chars on a word boundary with an ellipsis. Used for RSS
+// descriptions and per-post meta description.
+function summarizeForFeed(body: string, max: number = 200): string {
+    const firstParagraph = body.split(/\n\s*\n/)[0] ?? ""
+    const rendered = marked.parse(firstParagraph) as string
+    const plain = rendered.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()
+    if (plain.length <= max) return plain
+    const cut = plain.substring(0, max)
+    const lastSpace = cut.lastIndexOf(" ")
+    return (lastSpace > 0 ? cut.substring(0, lastSpace) : cut) + "\u2026"
+}
+
+// Resolve ISO datetime into year/month/day components in the canonical site
+// timezone so build-machine TZ doesn't split URLs across environments.
+function dateParts(datetime: Date): { year: string; month: string; day: string; monthName: string } {
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: CANONICAL_TZ,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(datetime)
+    const year = parts.find(p => p.type === "year")!.value
+    const month = parts.find(p => p.type === "month")!.value
+    const day = parts.find(p => p.type === "day")!.value
+    const monthName = MONTH_NAMES[parseInt(month, 10) - 1]!
+    return { year, month, day, monthName }
+}
+
 // Build blog posts
 function buildPosts(): void {
     const files = collectMarkdownFiles(POSTS_DIR)
@@ -140,26 +182,31 @@ function buildPosts(): void {
         const raw = readFileSync(filepath, "utf-8")
         const { attributes, body: rawBody } = parseFrontMatter(raw)
 
-        const title = attributes.title as string
-        const datetime = new Date(attributes.datetime as string)
+        // Validate required fields loudly. Missing title was silently producing
+        // slug "undefined"; missing datetime becomes Invalid Date which cascades
+        // to year "NaN" and a broken URL.
+        if (typeof attributes.title !== "string" || !attributes.title) {
+            throw new Error(`Missing title in ${filepath}`)
+        }
+        if (typeof attributes.datetime !== "string" || !attributes.datetime) {
+            throw new Error(`Missing datetime in ${filepath}`)
+        }
+
+        const title = attributes.title
+        const datetime = new Date(attributes.datetime)
         const image = (attributes.image as string) ?? null
 
+        const { year, month, day, monthName } = dateParts(datetime)
         const slug = slugify(title)
-        const year = datetime.getFullYear().toString()
-        const monthIndex = datetime.getMonth()
-        const month = String(monthIndex + 1).padStart(2, "0")
-        const monthName = MONTH_NAMES[monthIndex]!
-        const day = String(datetime.getDate()).padStart(2, "0")
 
         // Strip scripts and unwrap noscript before markdown processing
         const body = preprocessMarkdown(rawBody)
 
-        // Auto-generate description from first 200 chars of raw body
-        const description = rawBody.replace(/[#*\[\]`_<>]/g, "").substring(0, 200).trim()
+        const description = summarizeForFeed(body)
 
         // Auto-generate preview for long posts (render first paragraph as HTML)
         const previewHtml = body.length > 1500
-            ? rewriteLinks(marked.parse(body.split("\n")[0] ?? "") as string)
+            ? rewriteLinks(marked.parse(body.split(/\n\s*\n/)[0] ?? "") as string)
             : null
 
         // Convert full body from markdown to HTML, then fix internal links
