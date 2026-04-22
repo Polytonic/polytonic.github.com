@@ -136,24 +136,29 @@ th {
     font-weight: 600;
 }
 
-/* Shared cutout button atom. inline-flex lets min-height hit the 44px tap
-   target size without widening the caller's layout. */
+/* Shared cutout button atom. Visible dimensions match the original compact
+   design; an invisible ::before expands the click/tap target to the WCAG
+   44x44 minimum without altering layout. */
 .cutout {
-    align-items: center;
     border: 0.24rem solid;
     color: var(--color-accent);
-    display: inline-flex;
+    display: inline-block;
     font-family: var(--font-heading);
     font-size: 0.75rem;
     font-weight: 700;
-    justify-content: center;
     margin: auto 0.8rem;
-    min-height: 44px;
     min-width: 4rem;
-    padding: 0.25rem 0.8rem;
+    padding: 0.05rem 0.4rem;
+    position: relative;
     text-align: center;
     text-transform: uppercase;
     transition: color 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.cutout::before {
+    content: "";
+    position: absolute;
+    inset: -0.5rem;
 }
 
 @media (hover: hover) {
