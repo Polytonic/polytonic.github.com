@@ -73,6 +73,5 @@
 @media only screen and (min-width: 860px) {
     .article {
         max-width: 768px;
-        padding-left: 10rem;
     }
 }

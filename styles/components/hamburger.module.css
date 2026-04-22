@@ -15,9 +15,6 @@
     100% { transform: translateX(0); }
 }
 
-/* Container */
-.container {}
-
 .container.fixed .menu {
     max-width: 12rem;
 }
@@ -44,6 +41,10 @@
     .button:hover {
         background-color: color-mix(in srgb, var(--color-surface) 95%, var(--color-text));
     }
+}
+
+.button:active {
+    background-color: color-mix(in srgb, var(--color-surface) 85%, var(--color-text));
 }
 
 /* Three-bar icon */
@@ -134,13 +135,14 @@
 }
 
 .menu li a {
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 1rem 2rem;
+    min-height: 44px;
     border-bottom: 1px solid var(--color-border);
     color: var(--color-accent);
     font-weight: 700;
-    text-decoration: none;
-    transition: all calc(var(--hamburger-speed) * 0.75);
+    transition: color calc(var(--hamburger-speed) * 0.75), background-color calc(var(--hamburger-speed) * 0.75);
 }
 
 @media (hover: hover) {
@@ -148,6 +150,11 @@
         color: var(--color-accent-hover);
         background-color: color-mix(in srgb, var(--color-surface) 95%, var(--color-text));
     }
+}
+
+.menu li a:active {
+    color: var(--color-accent-press);
+    background-color: color-mix(in srgb, var(--color-surface) 85%, var(--color-text));
 }
 
 /* Desktop: hidden by default, bounces in when fixed */

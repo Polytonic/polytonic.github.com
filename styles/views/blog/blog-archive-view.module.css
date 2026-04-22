@@ -31,10 +31,12 @@
 .archive li {
     list-style: square;
     color: var(--color-text-muted);
-    line-height: 2;
 }
 
 .archive a {
     font-family: var(--font-heading);
     font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
 }

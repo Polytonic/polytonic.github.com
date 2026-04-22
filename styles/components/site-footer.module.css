@@ -28,9 +28,11 @@
 .footer a {
     font-family: var(--font-heading);
     font-weight: 700;
-    display: inline-block;
-    margin: 0 1rem 1rem;
-    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin: 0 1rem;
+    padding: 0.5rem 0;
 }
 
 .footer p {

@@ -3,11 +3,12 @@
 body { margin: 0; }
 input, button, select, textarea { font: inherit; }
 
-/* Design tokens: Grolleg color scheme */
+/* Design tokens: Grolleg color scheme. Interactive variants derive from the
+   base accent via color-mix so a future dark-mode swap only changes the base. */
 :root {
     --color-accent: #386B8C;
-    --color-accent-hover: #4A83A8;
-    --color-accent-press: #2C5570;
+    --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, white);
+    --color-accent-press: color-mix(in srgb, var(--color-accent) 85%, black);
 
     --color-text: #2D2D32;
     --color-text-muted: #6B6B70;
@@ -34,11 +35,11 @@ html {
     line-height: 1.6;
     color: var(--color-text);
     background: var(--color-background);
-    -webkit-font-smoothing: antialiased;
 }
 
 body {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -135,37 +136,53 @@ th {
     font-weight: 600;
 }
 
-/* Shared cutout button atom */
+/* Shared cutout button atom. inline-flex lets min-height hit the 44px tap
+   target size without widening the caller's layout. */
 .cutout {
+    align-items: center;
     border: 0.24rem solid;
     color: var(--color-accent);
-    display: inline-block;
+    display: inline-flex;
     font-family: var(--font-heading);
     font-size: 0.75rem;
-    font-weight: 900;
+    font-weight: 700;
+    justify-content: center;
     margin: auto 0.8rem;
+    min-height: 44px;
     min-width: 4rem;
-    padding: 0.05rem 0.4rem;
+    padding: 0.25rem 0.8rem;
     text-align: center;
     text-transform: uppercase;
-    text-decoration: none;
-    transition: all 0.15s ease-out;
-}
-
-.cutout:link,
-.cutout:visited,
-.cutout:active,
-.cutout:focus {
-    font-weight: 900;
+    transition: color 0.15s ease-out, background-color 0.15s ease-out;
 }
 
 @media (hover: hover) {
     .cutout:hover {
         color: var(--color-accent-hover);
-        text-decoration: none;
     }
 }
 
 .cutout:active {
     color: var(--color-accent-press);
+}
+
+/* Width-constrained block for fallback/empty-state messages (not-found,
+   post-not-found, empty-filter). */
+.content-width {
+    margin: 2rem auto;
+    width: 90vw;
+    max-width: 640px;
+}
+
+/* Respect prefers-reduced-motion across the site. Tiny non-zero durations
+   preserve state transitions without animation. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

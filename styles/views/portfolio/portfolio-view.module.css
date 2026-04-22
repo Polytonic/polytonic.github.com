@@ -51,6 +51,9 @@
     font-family: var(--font-heading);
     font-weight: 700;
     font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
 }
 
 /* Dark background grid area, matching original */
@@ -76,9 +79,6 @@
     }
 }
 
-@media only screen and (max-width: 1440px) {
-    .toc ul { columns: 4; }
-}
 @media only screen and (max-width: 1170px) {
     .toc ul { columns: 3; }
 }
