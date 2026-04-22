@@ -4,16 +4,18 @@
     "description": "Personal website and blog",
     "source": "source/index.html",
     "scripts": {
-        "prebuild": "bun run scripts/build-content.ts",
+        "prebuild": "bun run scripts/build-content.ts && bun run typecheck",
         "prestart": "bun run scripts/build-content.ts",
         "build": "parcel build --no-source-maps",
         "start": "parcel serve",
+        "typecheck": "tsc --noEmit",
         "clean": "rm -rf dist .parcel-cache source/content/posts.ts source/content/portfolio.ts"
     },
     "dependencies": {
         "mithril": "2.3.7"
     },
     "devDependencies": {
+        "@types/bun": "^1.3.12",
         "@types/mithril": "^2.2.7",
         "marked": "^18.0.2",
         "parcel": "^2.16.0",

@@ -5,15 +5,15 @@
         "moduleResolution": "bundler",
         "strict": true,
         "noUncheckedIndexedAccess": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "isolatedModules": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true,
-        "jsx": "preserve",
-        "types": ["bun-types"]
+        "types": ["bun"]
     },
     "include": ["source/**/*.ts", "scripts/**/*.ts", "styles/**/*.d.ts"]
 }

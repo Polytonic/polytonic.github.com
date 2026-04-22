@@ -4,10 +4,16 @@ import { Layout } from "../../components/layout"
 import { PostCard } from "./post-card"
 import * as styles from "../../../styles/views/blog/blog-list-view.module.css"
 
+interface BlogPostRouteAttrs {
+    year: string
+    month: string
+    slug: string
+}
+
 // Single blog post view, resolved from route params
-export const BlogPostView: m.Component = {
+export const BlogPostView: m.Component<BlogPostRouteAttrs> = {
     view(vnode) {
-        const { year, month, slug } = vnode.attrs as Record<string, string>
+        const { year, month, slug } = vnode.attrs
         const post = posts.find(
             p => p.year === year && p.month === month && p.slug === slug,
         )

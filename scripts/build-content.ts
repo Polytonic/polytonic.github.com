@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, copyFileSync } from "fs"
 import { join, resolve } from "path"
 import { marked } from "marked"
+import type { Post, PortfolioItem } from "../source/content/types"
 
 // Configure marked to match original site behavior
 marked.setOptions({ breaks: true, gfm: true })
@@ -149,7 +150,7 @@ const MONTH_NAMES = [
 // descriptions and per-post meta description.
 function summarizeForFeed(body: string, max: number = 200): string {
     const firstParagraph = body.split(/\n\s*\n/)[0] ?? ""
-    const rendered = marked.parse(firstParagraph) as string
+    const rendered = marked.parse(firstParagraph, { async: false })
     const plain = rendered.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()
     if (plain.length <= max) return plain
     const cut = plain.substring(0, max)
@@ -176,7 +177,7 @@ function dateParts(datetime: Date): { year: string; month: string; day: string; 
 // Build blog posts
 function buildPosts(): void {
     const files = collectMarkdownFiles(POSTS_DIR)
-    const posts: Array<Record<string, unknown>> = []
+    const posts: Post[] = []
 
     for (const filepath of files) {
         const raw = readFileSync(filepath, "utf-8")
@@ -206,17 +207,17 @@ function buildPosts(): void {
 
         // Auto-generate preview for long posts (render first paragraph as HTML)
         const previewHtml = body.length > 1500
-            ? rewriteLinks(marked.parse(body.split(/\n\s*\n/)[0] ?? "") as string)
+            ? rewriteLinks(marked.parse(body.split(/\n\s*\n/)[0] ?? "", { async: false }))
             : null
 
         // Convert full body from markdown to HTML, then fix internal links
-        const bodyHtml = rewriteLinks(marked.parse(body) as string)
+        const bodyHtml = rewriteLinks(marked.parse(body, { async: false }))
 
         posts.push({ title, slug, datetime: datetime.toISOString(), year, month, monthName, day, image, description, preview: previewHtml, body: bodyHtml })
     }
 
     // Sort newest first
-    posts.sort((a, b) => new Date(b.datetime as string).getTime() - new Date(a.datetime as string).getTime())
+    posts.sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime())
 
     // Escape backticks and backslashes for template literal embedding
     function escapeForTemplate(text: string): string {
@@ -240,7 +241,7 @@ function buildPosts(): void {
         lines.push(`        image: ${JSON.stringify(post.image)},`)
         lines.push(`        description: ${JSON.stringify(post.description)},`)
         lines.push(`        preview: ${post.preview ? JSON.stringify(post.preview) : "null"},`)
-        lines.push(`        body: \`${escapeForTemplate(post.body as string)}\`,`)
+        lines.push(`        body: \`${escapeForTemplate(post.body)}\`,`)
         lines.push(`    },`)
     }
 
@@ -281,23 +282,29 @@ function buildPortfolio(): void {
         const raw = readFileSync(filepath, "utf-8")
         const { attributes, body } = parseFrontMatter(raw)
 
-        const title = attributes.title as string
-        const subtitle = (attributes.subtitle as string) ?? ""
-        const image = (attributes.image as string) ?? null
-        const rawLinks = (attributes.links as Record<string, string>) ?? {}
-        const links: Record<string, string> = {}
-        for (const [label, url] of Object.entries(rawLinks)) {
-            links[label] = normalizePortfolioLink(url)
+        if (typeof attributes.title !== "string" || !attributes.title) {
+            throw new Error(`Missing title in ${filepath}`)
+        }
+
+        const item: PortfolioItem = {
+            title: attributes.title,
+            subtitle: (attributes.subtitle as string) ?? "",
+            slug,
+            image: (attributes.image as string) ?? null,
+            links: Object.fromEntries(
+                Object.entries((attributes.links as Record<string, string>) ?? {})
+                    .map(([label, url]) => [label, normalizePortfolioLink(url)]),
+            ),
+            body: rewriteLinks(marked.parse(body.trim(), { async: false })),
         }
 
         lines.push(`    {`)
-        lines.push(`        title: ${JSON.stringify(title)},`)
-        lines.push(`        subtitle: ${JSON.stringify(subtitle)},`)
-        lines.push(`        slug: ${JSON.stringify(slug)},`)
-        lines.push(`        image: ${JSON.stringify(image)},`)
-        lines.push(`        links: ${JSON.stringify(links)},`)
-        const bodyHtml = rewriteLinks(marked.parse(body.trim()) as string)
-        lines.push(`        body: \`${escapeForTemplate(bodyHtml)}\`,`)
+        lines.push(`        title: ${JSON.stringify(item.title)},`)
+        lines.push(`        subtitle: ${JSON.stringify(item.subtitle)},`)
+        lines.push(`        slug: ${JSON.stringify(item.slug)},`)
+        lines.push(`        image: ${JSON.stringify(item.image)},`)
+        lines.push(`        links: ${JSON.stringify(item.links)},`)
+        lines.push(`        body: \`${escapeForTemplate(item.body)}\`,`)
         lines.push(`    },`)
     }
 
@@ -308,7 +315,7 @@ function buildPortfolio(): void {
 }
 
 // Generate RSS feed XML
-function buildRssFeed(posts: Array<Record<string, unknown>>): void {
+function buildRssFeed(posts: Post[]): void {
     if (!existsSync(DIST_DIR)) mkdirSync(DIST_DIR, { recursive: true })
 
     const feedUrl = "https://www.tinycranes.com/feed.xml"
@@ -318,7 +325,7 @@ function buildRssFeed(posts: Array<Record<string, unknown>>): void {
     // Pin lastBuildDate to the newest post so unrelated CI runs don't produce
     // phantom feed updates.
     const lastBuildDate = recentPosts[0]
-        ? new Date(recentPosts[0].datetime as string).toUTCString()
+        ? new Date(recentPosts[0].datetime).toUTCString()
         : new Date(0).toUTCString()
 
     const items = recentPosts.map(post => {
@@ -326,15 +333,15 @@ function buildRssFeed(posts: Array<Record<string, unknown>>): void {
         // trailing slashes), so feed-reader clicks land on the canonical URL.
         const link = `https://www.tinycranes.com/blog/${post.year}/${post.month}/${post.slug}`
         // CDATA cannot contain a literal `]]>`; split any occurrence.
-        const body = (post.body as string).replaceAll("]]>", "]]]]><![CDATA[>")
+        const body = post.body.replaceAll("]]>", "]]]]><![CDATA[>")
         return [
             `        <item>`,
-            `            <title>${escapeXml(post.title as string)}</title>`,
+            `            <title>${escapeXml(post.title)}</title>`,
             `            <link>${link}</link>`,
             `            <guid isPermaLink="true">${link}</guid>`,
-            `            <pubDate>${new Date(post.datetime as string).toUTCString()}</pubDate>`,
+            `            <pubDate>${new Date(post.datetime).toUTCString()}</pubDate>`,
             `            <author>${escapeXml(managingEditor)}</author>`,
-            `            <description>${escapeXml(post.description as string)}</description>`,
+            `            <description>${escapeXml(post.description)}</description>`,
             `            <content:encoded><![CDATA[${body}]]></content:encoded>`,
             `        </item>`,
         ].join("\n")

@@ -92,19 +92,20 @@ function setPageMeta(info: PageMeta): void {
 }
 
 // Route resolver that updates the scroll position and page metadata on match.
-// Meta callback receives route params, so post titles can be resolved from the slug.
-function scrollRoute(
-    component: m.Component,
-    meta?: (args: Record<string, string>) => PageMeta,
-): m.RouteResolver {
+// Meta callback receives route params so post titles can be resolved from the slug.
+// Generic over attrs so the route table preserves typed params end-to-end.
+// Returning the component from onmatch lets Mithril mount it directly with the
+// route params as attrs, avoiding a manual m(component, vnode.attrs) call whose
+// inference breaks under generics.
+function scrollRoute<A>(
+    component: m.ComponentTypes<A>,
+    meta?: (args: A) => PageMeta,
+): m.RouteResolver<A> {
     return {
-        onmatch(args: Record<string, string>) {
-            // Preserve the browser's native anchor scroll on hash-targeted direct loads.
+        onmatch(args: A) {
             if (!window.location.hash) window.scrollTo(0, 0)
             setPageMeta(meta ? meta(args) : {})
-        },
-        render(vnode) {
-            return m(component, vnode.attrs)
+            return component
         },
     }
 }
