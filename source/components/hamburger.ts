@@ -8,92 +8,96 @@ const MENU_LINKS = [
     { label: "Back to Top", href: "#top" },
 ]
 
-interface HamburgerState {
-    expanded: boolean
-    fixed: boolean
-}
+const MENU_ID = "hamburger-menu"
 
-const state: HamburgerState = {
-    expanded: false,
-    fixed: false,
-}
+// Hamburger navigation: fixed button that appears on scroll, with slide-in menu.
+// Closure component so state is per-instance; a second mount (e.g. on the home
+// page, which doesn't go through Layout) gets independent state.
+export const Hamburger: m.ClosureComponent = () => {
+    let expanded = false
+    let fixed = false
+    let buttonEl: HTMLElement | null = null
 
-function checkScroll(): void {
-    // Show hamburger button after scrolling past the navbar
-    const navbar = document.querySelector("[data-navbar]")
-    const offset = navbar ? navbar.clientHeight * 1.25 : window.innerHeight - 10
-    const scrolled = window.scrollY > offset
+    function checkScroll(): void {
+        const navbar = document.querySelector("[data-navbar]")
+        const offset = navbar ? navbar.clientHeight * 1.25 : window.innerHeight - 10
+        const scrolled = window.scrollY > offset
 
-    if (scrolled && !state.fixed) {
-        state.fixed = true
-        m.redraw()
-    } else if (!scrolled && state.fixed) {
-        state.expanded = false
-        state.fixed = false
-        m.redraw()
+        if (scrolled && !fixed) {
+            fixed = true
+            m.redraw()
+        } else if (!scrolled && fixed) {
+            // When scrolling back to the top the button hides, so the menu
+            // must close too or it would orphan off-screen.
+            expanded = false
+            fixed = false
+            m.redraw()
+        }
     }
-}
 
-// Hamburger navigation: fixed button that appears on scroll, with slide-in menu
-export const Hamburger: m.Component = {
-    oncreate() {
-        window.addEventListener("scroll", checkScroll, { passive: true })
-        window.addEventListener("resize", checkScroll, { passive: true })
-    },
+    function onKeydown(event: KeyboardEvent): void {
+        if (event.key === "Escape" && expanded) {
+            expanded = false
+            buttonEl?.focus()
+            m.redraw()
+        }
+    }
 
-    onremove() {
-        window.removeEventListener("scroll", checkScroll)
-        window.removeEventListener("resize", checkScroll)
-    },
+    return {
+        oncreate() {
+            // Sync initial state in case of direct load on a deep-scroll URL.
+            checkScroll()
+            window.addEventListener("scroll", checkScroll, { passive: true })
+            window.addEventListener("resize", checkScroll, { passive: true })
+            window.addEventListener("keydown", onKeydown)
+        },
 
-    view() {
-        const containerClass = [
-            styles.container,
-            state.fixed ? styles.fixed : "",
-        ].join(" ")
+        onremove() {
+            window.removeEventListener("scroll", checkScroll)
+            window.removeEventListener("resize", checkScroll)
+            window.removeEventListener("keydown", onKeydown)
+        },
 
-        const buttonClass = [
-            styles.button,
-            state.expanded ? styles.buttonExpanded : "",
-        ].join(" ")
+        view() {
+            const containerClass = [styles.container, fixed ? styles.fixed : ""].filter(Boolean).join(" ")
+            const buttonClass = [styles.button, expanded ? styles.buttonExpanded : ""].filter(Boolean).join(" ")
+            const menuClass = [styles.menu, expanded ? styles.menuVisible : ""].filter(Boolean).join(" ")
 
-        const menuClass = [
-            styles.menu,
-            state.expanded ? styles.menuVisible : "",
-        ].join(" ")
+            return m("nav", { class: containerClass }, [
+                m("button", {
+                    type: "button",
+                    class: buttonClass,
+                    "aria-expanded": String(expanded),
+                    "aria-controls": MENU_ID,
+                    "aria-label": expanded ? "Close menu" : "Open menu",
+                    oncreate(vnode: m.VnodeDOM) { buttonEl = vnode.dom as HTMLElement },
+                    onremove() { buttonEl = null },
+                    onclick() { expanded = !expanded },
+                }, m("span")),
 
-        return m("nav", { class: containerClass }, [
-            m("a", {
-                class: buttonClass,
-                onclick(event: Event) {
-                    event.preventDefault()
-                    state.expanded = !state.expanded
-                },
-            }, m("span")),
-
-            m("ul", { class: menuClass },
-                MENU_LINKS.map((link, index) =>
-                    m("li", {
-                        key: link.label,
-                        style: state.expanded
-                            ? `animation-delay: ${index * 0.1}s`
-                            : undefined,
-                    },
-                        link.href.startsWith("#")
-                            ? m("a", {
-                                href: link.href,
-                                onclick() {
-                                    state.expanded = false
-                                    window.scrollTo({ top: 0, behavior: "smooth" })
-                                },
-                            }, link.label)
-                            : m(m.route.Link, {
-                                href: link.href,
-                                onclick() { state.expanded = false },
-                            }, link.label),
+                m("ul", { id: MENU_ID, class: menuClass },
+                    MENU_LINKS.map((link, index) =>
+                        m("li", {
+                            key: link.label,
+                            style: expanded ? `animation-delay: ${index * 0.1}s` : undefined,
+                        },
+                            link.href.startsWith("#")
+                                ? m("a", {
+                                    href: link.href,
+                                    onclick(event: MouseEvent) {
+                                        event.preventDefault()
+                                        expanded = false
+                                        window.scrollTo({ top: 0, behavior: "smooth" })
+                                    },
+                                }, link.label)
+                                : m(m.route.Link, {
+                                    href: link.href,
+                                    onclick() { expanded = false },
+                                }, link.label),
+                        ),
                     ),
                 ),
-            ),
-        ])
-    },
+            ])
+        },
+    }
 }

@@ -43,7 +43,7 @@ export const ProjectCard: m.Component<ProjectCardAttrs> = {
                                 key: label,
                                 href: url,
                                 target: url.startsWith("http") ? "_blank" : undefined,
-                                rel: url.startsWith("http") ? "noopener" : undefined,
+                                rel: url.startsWith("http") ? "noopener noreferrer" : undefined,
                                 class: "cutout",
                             }, label)
                         }),

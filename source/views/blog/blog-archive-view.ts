@@ -21,9 +21,10 @@ export const BlogArchiveView: m.Component = {
 
         return m(Layout, [
             m("div", { class: styles.entry }, [
+                m("h1", { class: styles.pageTitle }, "Archive"),
                 [...grouped.entries()].map(([year, months]) =>
                     m("section", { key: year, class: styles.archive }, [
-                        m("h1", year),
+                        m("h2", year),
                         [...months.entries()].map(([monthName, monthNumber]) =>
                             m("ul", { key: monthName },
                                 m("li",

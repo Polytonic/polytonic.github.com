@@ -4,14 +4,22 @@
     padding-bottom: 2rem;
 }
 
-.archive {
+.pageTitle {
     margin: 0 auto;
     width: 90vw;
     max-width: 440px;
     padding-top: 1.5rem;
+    font-family: var(--font-body);
 }
 
-.archive h1 {
+.archive {
+    margin: 0 auto;
+    width: 90vw;
+    max-width: 440px;
+    padding-top: 1rem;
+}
+
+.archive h2 {
     font-family: var(--font-body);
     margin-left: 0.25rem;
 }
