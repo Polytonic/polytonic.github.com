@@ -1,4 +1,8 @@
 import m from "mithril"
+// Syntax highlighting theme. Tokenization happens at build time in
+// scripts/build-content.ts; this stylesheet provides the colors for the
+// class-based output (a11y-dark).
+import "highlight.js/styles/a11y-dark.css"
 import { HomeView } from "./views/home/home-view"
 import { BlogListView } from "./views/blog/blog-list-view"
 import { BlogPostView } from "./views/blog/blog-post-view"

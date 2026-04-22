@@ -1,7 +1,30 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, copyFileSync } from "fs"
 import { join, resolve } from "path"
 import { marked } from "marked"
+import { markedHighlight } from "marked-highlight"
+import hljs from "highlight.js/lib/core"
+import cpp from "highlight.js/lib/languages/cpp"
+import c from "highlight.js/lib/languages/c"
+import bash from "highlight.js/lib/languages/bash"
 import type { Post, PortfolioItem } from "../source/content/types"
+
+// Register only the languages our posts use. Keeps the build's grammar surface
+// tight and documents what fence tags are supported in content.
+hljs.registerLanguage("cpp", cpp)
+hljs.registerLanguage("c", c)
+hljs.registerLanguage("bash", bash)
+
+// Syntax highlighting runs at build time; pages ship pre-tokenized HTML with
+// class names, so no highlighter JS loads in the browser. The a11y-dark theme
+// CSS in source/index.css applies the colors.
+marked.use(markedHighlight({
+    langPrefix: "hljs language-",
+    highlight(code, lang) {
+        const normalized = lang === "c++" ? "cpp" : lang
+        const language = normalized && hljs.getLanguage(normalized) ? normalized : "plaintext"
+        return hljs.highlight(code, { language }).value
+    },
+}))
 
 // Configure marked to match original site behavior
 marked.setOptions({ breaks: true, gfm: true })

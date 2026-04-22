@@ -93,20 +93,20 @@ code, pre {
 }
 
 pre {
-    background: var(--color-text);
-    color: var(--color-text-inverse);
     padding: 1em;
     border-radius: 6px;
     overflow-x: auto;
     margin: 0 0 1em;
 }
 
-pre code {
-    background: none;
+/* highlight.js-tokenized code: the theme provides color + background */
+pre code.hljs {
     padding: 0;
+    background: transparent;
 }
 
-code {
+/* Inline code (outside of fenced blocks): our own token-neutral styling */
+code:not(.hljs) {
     background: var(--color-border);
     padding: 0.15em 0.4em;
     border-radius: 3px;
