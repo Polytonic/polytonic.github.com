@@ -2,6 +2,7 @@ import m from "mithril"
 import { posts } from "../../content/posts"
 import { Layout } from "../../components/layout"
 import { PostCard } from "./post-card"
+import { BlogDisclaimer } from "./blog-disclaimer"
 import * as styles from "../../../styles/views/blog/blog-list-view.module.css"
 
 interface BlogFilteredRouteAttrs {
@@ -33,9 +34,7 @@ export const BlogFilteredView: m.Component<BlogFilteredRouteAttrs> = {
                 filtered.map(post =>
                     m(PostCard, { key: post.slug, post, expanded: false }),
                 ),
-                m("aside", { class: styles.disclaimer },
-                    m("sub", "Disclaimer: The views and opinions expressed on this blog are purely my own."),
-                ),
+                m(BlogDisclaimer),
             ]),
         ])
     },

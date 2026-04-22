@@ -1,4 +1,5 @@
 import m from "mithril"
+import { posts } from "../../content/posts"
 import { SiteFooter } from "../../components/site-footer"
 import { Hamburger } from "../../components/hamburger"
 import * as styles from "../../../styles/views/home/home-view.module.css"
@@ -8,6 +9,11 @@ const SOCIAL_LINKS = [
     { label: "LinkedIn", href: "https://linkedin.com/in/tinycranes/" },
     { label: "Email", href: "mailto:mail@tinycranes.com" },
 ]
+
+function latestPostUrl(): string {
+    const latest = posts[0]
+    return latest ? `/blog/${latest.year}/${latest.month}/${latest.slug}` : "/blog"
+}
 
 // Homepage has no navbar header, just a full-viewport hero and about section
 export const HomeView: m.Component = {
@@ -53,7 +59,7 @@ export const HomeView: m.Component = {
                 ]),
             ]),
 
-            m(SiteFooter),
+            m(SiteFooter, { latestUrl: latestPostUrl() }),
             m(Hamburger),
         ])
     },

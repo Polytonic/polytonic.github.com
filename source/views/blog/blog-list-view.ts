@@ -2,6 +2,7 @@ import m from "mithril"
 import { posts } from "../../content/posts"
 import { Layout } from "../../components/layout"
 import { PostCard } from "./post-card"
+import { BlogDisclaimer } from "./blog-disclaimer"
 import * as styles from "../../../styles/views/blog/blog-list-view.module.css"
 
 // Groups posts by year for display
@@ -32,9 +33,7 @@ export const BlogListView: m.Component = {
                         ),
                     ]),
                 ),
-                m("aside", { class: styles.disclaimer },
-                    m("sub", "Disclaimer: The views and opinions expressed on this blog are purely my own."),
-                ),
+                m(BlogDisclaimer),
             ]),
         ])
     },

@@ -1,14 +1,14 @@
 import m from "mithril"
-import { posts } from "../content/posts"
 import * as styles from "../../styles/components/site-footer.module.css"
 
-export const SiteFooter: m.Component = {
-    view() {
-        // Link to the most recent post
-        const latest = posts[0]
-        const latestUrl = latest
-            ? `/blog/${latest.year}/${latest.month}/${latest.slug}`
-            : "/blog"
+interface SiteFooterAttrs {
+    // URL for the "Latest" nav link. Defaults to /blog if absent (e.g., no posts).
+    latestUrl?: string
+}
+
+export const SiteFooter: m.Component<SiteFooterAttrs> = {
+    view(vnode) {
+        const latestUrl = vnode.attrs.latestUrl ?? "/blog"
 
         return m("footer", { class: styles.footer }, [
             m("nav", [

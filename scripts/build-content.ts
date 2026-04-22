@@ -54,6 +54,12 @@ const DIST_DIR = join(ROOT, "dist")
 // Both the build and the DateDisplay runtime component resolve dates in this zone.
 export const CANONICAL_TZ = "America/New_York"
 
+// Escape backticks, backslashes, and template-literal interpolation so a rendered
+// HTML body can be embedded in a ${`...`} template in the generated TS modules.
+function escapeForTemplate(text: string): string {
+    return text.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${")
+}
+
 // Portfolio link values in frontmatter are authored as relative paths
 // (e.g. `fidelis/`, `documents/goliath.pdf`). Rewrite to absolute so they
 // resolve regardless of which SPA route renders the card.
@@ -158,20 +164,19 @@ function summarizeForFeed(body: string, max: number = 200): string {
     return (lastSpace > 0 ? cut.substring(0, lastSpace) : cut) + "\u2026"
 }
 
-// Resolve ISO datetime into year/month/day components in the canonical site
-// timezone so build-machine TZ doesn't split URLs across environments.
-function dateParts(datetime: Date): { year: string; month: string; day: string; monthName: string } {
+// Resolve ISO datetime into year/month components in the canonical site timezone
+// so build-machine TZ doesn't split URLs across environments. Day is not
+// emitted (no view renders it; DateDisplay reformats datetime at runtime).
+function dateParts(datetime: Date): { year: string; month: string; monthName: string } {
     const parts = new Intl.DateTimeFormat("en-US", {
         timeZone: CANONICAL_TZ,
         year: "numeric",
         month: "2-digit",
-        day: "2-digit",
     }).formatToParts(datetime)
     const year = parts.find(p => p.type === "year")!.value
     const month = parts.find(p => p.type === "month")!.value
-    const day = parts.find(p => p.type === "day")!.value
     const monthName = MONTH_NAMES[parseInt(month, 10) - 1]!
-    return { year, month, day, monthName }
+    return { year, month, monthName }
 }
 
 // Build blog posts
@@ -197,7 +202,7 @@ function buildPosts(): void {
         const datetime = new Date(attributes.datetime)
         const image = (attributes.image as string) ?? null
 
-        const { year, month, day, monthName } = dateParts(datetime)
+        const { year, month, monthName } = dateParts(datetime)
         const slug = slugify(title)
 
         // Strip scripts and unwrap noscript before markdown processing
@@ -213,16 +218,11 @@ function buildPosts(): void {
         // Convert full body from markdown to HTML, then fix internal links
         const bodyHtml = rewriteLinks(marked.parse(body, { async: false }))
 
-        posts.push({ title, slug, datetime: datetime.toISOString(), year, month, monthName, day, image, description, preview: previewHtml, body: bodyHtml })
+        posts.push({ title, slug, datetime: datetime.toISOString(), year, month, monthName, image, description, preview: previewHtml, body: bodyHtml })
     }
 
     // Sort newest first
     posts.sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime())
-
-    // Escape backticks and backslashes for template literal embedding
-    function escapeForTemplate(text: string): string {
-        return text.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${")
-    }
 
     const lines = [
         `import type { Post } from "./types"\n`,
@@ -237,7 +237,6 @@ function buildPosts(): void {
         lines.push(`        year: ${JSON.stringify(post.year)},`)
         lines.push(`        month: ${JSON.stringify(post.month)},`)
         lines.push(`        monthName: ${JSON.stringify(post.monthName)},`)
-        lines.push(`        day: ${JSON.stringify(post.day)},`)
         lines.push(`        image: ${JSON.stringify(post.image)},`)
         lines.push(`        description: ${JSON.stringify(post.description)},`)
         lines.push(`        preview: ${post.preview ? JSON.stringify(post.preview) : "null"},`)
@@ -263,10 +262,6 @@ function buildPortfolio(): void {
         "footsteps", "apostrophe", "vertigo", "rotary", "monotony",
         "lost-manuscript", "mockingbird",
     ]
-
-    function escapeForTemplate(text: string): string {
-        return text.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${")
-    }
 
     const lines = [
         `import type { PortfolioItem } from "./types"\n`,

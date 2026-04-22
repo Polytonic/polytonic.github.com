@@ -5,7 +5,6 @@ export interface Post {
     year: string
     month: string
     monthName: string
-    day: string
     image: string | null
     description: string
     preview: string | null
