@@ -3,8 +3,8 @@ import * as styles from "../../styles/components/hamburger.module.css"
 
 const MENU_LINKS = [
     { label: "Home", href: "/" },
-    { label: "Blog", href: "/blog" },
-    { label: "Portfolio", href: "/portfolio" },
+    { label: "Blog", href: "/blog/" },
+    { label: "Portfolio", href: "/portfolio/" },
     { label: "Back to Top", href: "#top" },
 ]
 
@@ -38,8 +38,11 @@ export const Hamburger: m.ClosureComponent = () => {
     function onKeydown(event: KeyboardEvent): void {
         if (event.key === "Escape" && expanded) {
             expanded = false
+            // Flush the DOM update before moving focus so the button's
+            // aria-expanded="false" / aria-label="Open menu" are current
+            // when screen readers announce the focus landing.
+            m.redraw.sync()
             buttonEl?.focus()
-            m.redraw()
         }
     }
 

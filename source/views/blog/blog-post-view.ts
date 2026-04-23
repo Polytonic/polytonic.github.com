@@ -16,7 +16,7 @@ export const BlogPostView: m.Component<BlogPostRouteAttrs> = {
     view(vnode) {
         const { year, month, slug } = vnode.attrs
         const post = posts.find(
-            p => p.year === year && p.month === month && p.slug === slug,
+            entry => entry.year === year && entry.month === month && entry.slug === slug,
         )
 
         if (!post) {

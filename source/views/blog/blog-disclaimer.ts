@@ -1,5 +1,5 @@
 import m from "mithril"
-import * as styles from "../../../styles/views/blog/blog-list-view.module.css"
+import * as styles from "../../../styles/views/blog/blog-disclaimer.module.css"
 
 // Standard trailer on every blog view. Originally inlined in three places.
 export const BlogDisclaimer: m.Component = {

@@ -17,9 +17,9 @@ const FORMATTER = new Intl.DateTimeFormat("en-US", {
 export const DateDisplay: m.Component<DateDisplayAttrs> = {
     view(vnode) {
         const parts = FORMATTER.formatToParts(new Date(vnode.attrs.datetime))
-        const day = parts.find(p => p.type === "day")!.value
-        const month = parts.find(p => p.type === "month")!.value
-        const year = parts.find(p => p.type === "year")!.value
+        const day = parts.find(part => part.type === "day")!.value
+        const month = parts.find(part => part.type === "month")!.value
+        const year = parts.find(part => part.type === "year")!.value
         return m("time", { datetime: vnode.attrs.datetime }, `${day} ${month} ${year}`)
     },
 }

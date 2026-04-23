@@ -1,0 +1,7 @@
+.disclaimer {
+    color: var(--color-text-muted);
+    text-align: center;
+    margin: 0 auto;
+    width: 90vw;
+    max-width: 640px;
+}

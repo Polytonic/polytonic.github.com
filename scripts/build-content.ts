@@ -44,25 +44,12 @@ function preprocessMarkdown(body: string): string {
     return body
 }
 
-// Rewrite internal links for the SPA:
-// - Strip trailing slashes from /blog/... paths (including before #fragment / ?query)
-// - Convert absolute tinycranes.com URLs to relative paths
+// Convert absolute tinycranes.com URLs in href attributes to site-relative
+// paths. Scoped to href="..." so text that happens to reference the domain
+// literally (e.g. in <code> blocks) isn't silently rewritten. Trailing
+// slashes are preserved as-is: canonical URLs on this site include them.
 function rewriteLinks(html: string): string {
-    // Absolute tinycranes.com URLs to relative. Scoped to href="..." so text
-    // that happens to reference the domain literally (e.g. in <code> blocks)
-    // isn't silently rewritten.
-    html = html.replace(/href="https?:\/\/(?:www\.)?tinycranes\.com(\/[^"]*)"/g, 'href="$1"')
-
-    // Strip a trailing slash from internal /blog/ links. Must handle three shapes:
-    //   href="/blog/foo/"       -> href="/blog/foo"
-    //   href="/blog/foo/#anchor" -> href="/blog/foo#anchor"
-    //   href="/blog/foo/?q=1"    -> href="/blog/foo?q=1"
-    // The lookahead keeps the following delimiter in place; without it, links
-    // with fragments or query strings slipped through and hit the GH Pages
-    // 404-as-index-html fallback, forcing a full page reload.
-    html = html.replace(/href="(\/blog\/[^"#?]*?)\/(?=[#?"])/g, 'href="$1')
-
-    return html
+    return html.replace(/href="https?:\/\/(?:www\.)?tinycranes\.com(\/[^"]*)"/g, 'href="$1"')
 }
 
 const ROOT = resolve(import.meta.dir, "..")
@@ -196,8 +183,8 @@ function dateParts(datetime: Date): { year: string; month: string; monthName: st
         year: "numeric",
         month: "2-digit",
     }).formatToParts(datetime)
-    const year = parts.find(p => p.type === "year")!.value
-    const month = parts.find(p => p.type === "month")!.value
+    const year = parts.find(part => part.type === "year")!.value
+    const month = parts.find(part => part.type === "month")!.value
     const monthName = MONTH_NAMES[parseInt(month, 10) - 1]!
     return { year, month, monthName }
 }
@@ -347,9 +334,9 @@ function buildRssFeed(posts: Post[]): void {
         : new Date(0).toUTCString()
 
     const items = recentPosts.map(post => {
-        // No trailing slash: matches the SPA's canonical form (index.ts strips
-        // trailing slashes), so feed-reader clicks land on the canonical URL.
-        const link = `https://www.tinycranes.com/blog/${post.year}/${post.month}/${post.slug}`
+        // Trailing slash matches the SPA's canonical URL form, so feed-reader
+        // clicks land on the canonical URL without a replaceState round-trip.
+        const link = `https://www.tinycranes.com/blog/${post.year}/${post.month}/${post.slug}/`
         // CDATA cannot contain a literal `]]>`; split any occurrence.
         const body = post.body.replaceAll("]]>", "]]]]><![CDATA[>")
         return [

@@ -11,36 +11,54 @@ import { BlogFilteredView } from "./views/blog/blog-filtered-view"
 import { PortfolioView } from "./views/portfolio/portfolio-view"
 import { NotFoundView } from "./views/not-found-view"
 import { posts } from "./content/posts"
+import { latestPostUrl } from "./content/queries"
 
 // Use clean URLs (no hash prefix)
 m.route.prefix = ""
 
-// Normalize trailing slashes: redirect /blog/ to /blog, etc.
-// Preserves compatibility with old-style URLs.
+// Canonical URL form is trailing-slash (matches the pre-migration site and the
+// RSS feed's <link>/<guid>). Paths without a slash get one here on boot so
+// bookmarks + external links keep working; all internally-generated hrefs
+// include the slash to begin with.
 const currentPath = window.location.pathname
-if (currentPath.length > 1 && currentPath.endsWith("/")) {
-    const normalized = currentPath.slice(0, -1) + window.location.search + window.location.hash
+if (currentPath !== "/" && !currentPath.endsWith("/")) {
+    const normalized = currentPath + "/" + window.location.search + window.location.hash
     window.history.replaceState(null, "", normalized)
 }
 
 const root = document.getElementById("app")!
+
+// Normalize a path so it ends in "/" (root excluded). Used by the click
+// interceptor before handing a URL to m.route.set so href values in
+// author-authored markdown that omit the trailing slash still route.
+function canonicalPath(path: string): string {
+    return path === "/" || path.endsWith("/") ? path : path + "/"
+}
+
+// String-method file-extension check (no regex per project style).
+function hasFileExtension(path: string): boolean {
+    const lastSlash = path.lastIndexOf("/")
+    const lastDot = path.lastIndexOf(".")
+    return lastDot > lastSlash
+}
+
+// Does this path correspond to a Mithril SPA route (vs a standalone static
+// page like /portfolio/fidelis/ or an asset like /portfolio/assets/foo.png)?
+// SPA routes: /, /portfolio/, and any /blog/... that isn't a file. Paths
+// under /portfolio/<slug>/ are legacy Twine/Unity bundles and must pass
+// through to the browser.
+function isInternalSPAPath(path: string): boolean {
+    const normalized = canonicalPath(path)
+    if (normalized === "/" || normalized === "/portfolio/") return true
+    if (!normalized.startsWith("/blog/")) return false
+    return !hasFileExtension(normalized)
+}
 
 // Intercept clicks on plain same-origin anchors so the SPA handles internal
 // navigation without a full page reload. m.route.Link already does this for
 // vnodes we generate, but author-authored HTML rendered via m.trust emits
 // plain <a> tags that would otherwise trigger native navigation through the
 // GH Pages 404-as-index-html fallback.
-function isInternalSPAPath(path: string): boolean {
-    // SPA routes have no file extension and are under /, /blog, or /portfolio.
-    // Standalone pages like /portfolio/fidelis/index.html and static assets
-    // (/portfolio/assets/foo.png, /uploads/bar.png) must pass through.
-    if (path === "/" || path === "/portfolio") return true
-    if (!path.startsWith("/blog")) return false
-    if (/\.[a-z0-9]{1,5}$/i.test(path)) return false
-    // Only /blog, /blog/archive, /blog/latest, /blog/YYYY[/MM[/slug]]
-    return /^\/blog(?:$|\/archive$|\/latest$|\/\d{4}(?:\/\d{2}(?:\/[a-z0-9-]+)?)?$)/.test(path)
-}
-
 document.addEventListener("click", (event) => {
     if (event.defaultPrevented) return
     if (event.button !== 0) return
@@ -64,7 +82,7 @@ document.addEventListener("click", (event) => {
     if (!isInternalSPAPath(url.pathname)) return
 
     event.preventDefault()
-    m.route.set(url.pathname + url.search + url.hash)
+    m.route.set(canonicalPath(url.pathname) + url.search + url.hash)
 })
 
 // Per-route document metadata
@@ -114,28 +132,25 @@ function scrollRoute<A>(
     }
 }
 
+// Route patterns end in "/" to match the canonicalized URL form.
 m.route(root, "/", {
-    "/":                          scrollRoute(HomeView),
-    "/blog":                      scrollRoute(BlogListView,    ()                    => ({ title: "Blog" })),
-    "/blog/archive":              scrollRoute(BlogArchiveView, ()                    => ({ title: "Archive" })),
-    "/blog/latest": {
+    "/":                           scrollRoute(HomeView),
+    "/blog/":                      scrollRoute(BlogListView,    ()                      => ({ title: "Blog" })),
+    "/blog/archive/":              scrollRoute(BlogArchiveView, ()                      => ({ title: "Archive" })),
+    "/blog/latest/": {
         // Preserve the old /blog/latest redirect behavior: bounce to the newest post.
         onmatch() {
-            const latest = posts[0]
-            const target = latest
-                ? `/blog/${latest.year}/${latest.month}/${latest.slug}`
-                : "/blog"
-            m.route.set(target, null, { replace: true })
+            m.route.set(latestPostUrl(), null, { replace: true })
         },
     },
-    "/blog/:year":                scrollRoute(BlogFilteredView, ({ year })           => ({ title: `${year} Archive` })),
-    "/blog/:year/:month":         scrollRoute(BlogFilteredView, ({ year, month })    => ({ title: `${year}/${month} Archive` })),
-    "/blog/:year/:month/:slug":   scrollRoute(BlogPostView,     ({ year, month, slug }) => {
-        const post = posts.find(p => p.year === year && p.month === month && p.slug === slug)
+    "/blog/:year/":                scrollRoute(BlogFilteredView, ({ year })             => ({ title: `${year} Archive` })),
+    "/blog/:year/:month/":         scrollRoute(BlogFilteredView, ({ year, month })      => ({ title: `${year}/${month} Archive` })),
+    "/blog/:year/:month/:slug/":   scrollRoute(BlogPostView,     ({ year, month, slug }) => {
+        const post = posts.find(entry => entry.year === year && entry.month === month && entry.slug === slug)
         return post
             ? { title: post.title, description: post.description }
             : { title: "Post not found" }
     }),
-    "/portfolio":                 scrollRoute(PortfolioView, () => ({ title: "Portfolio" })),
-    "/:path...":                  scrollRoute(NotFoundView,  () => ({ title: "Page not found" })),
+    "/portfolio/":                 scrollRoute(PortfolioView, () => ({ title: "Portfolio" })),
+    "/:path...":                   scrollRoute(NotFoundView,  () => ({ title: "Page not found" })),
 })

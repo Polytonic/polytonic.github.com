@@ -29,7 +29,7 @@ export const BlogArchiveView: m.Component = {
                             m("ul", { key: monthName },
                                 m("li",
                                     m(m.route.Link, {
-                                        href: `/blog/${year}/${monthNumber}`,
+                                        href: `/blog/${year}/${monthNumber}/`,
                                     }, monthName),
                                 ),
                             ),

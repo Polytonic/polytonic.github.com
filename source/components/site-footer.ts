@@ -13,7 +13,7 @@ export const SiteFooter: m.Component<SiteFooterAttrs> = {
         return m("footer", { class: styles.footer }, [
             m("nav", [
                 m("ul", [
-                    m("li", m(m.route.Link, { href: "/blog/archive" }, "Archive")),
+                    m("li", m(m.route.Link, { href: "/blog/archive/" }, "Archive")),
                     m("li", m(m.route.Link, { href: latestUrl }, "Latest")),
                     m("li", m("a", { href: "/feed.xml" }, "RSS")),
                 ]),

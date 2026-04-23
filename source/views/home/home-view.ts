@@ -1,7 +1,7 @@
 import m from "mithril"
-import { posts } from "../../content/posts"
 import { SiteFooter } from "../../components/site-footer"
 import { Hamburger } from "../../components/hamburger"
+import { latestPostUrl } from "../../content/queries"
 import * as styles from "../../../styles/views/home/home-view.module.css"
 
 const SOCIAL_LINKS = [
@@ -9,11 +9,6 @@ const SOCIAL_LINKS = [
     { label: "LinkedIn", href: "https://linkedin.com/in/tinycranes/" },
     { label: "Email", href: "mailto:mail@tinycranes.com" },
 ]
-
-function latestPostUrl(): string {
-    const latest = posts[0]
-    return latest ? `/blog/${latest.year}/${latest.month}/${latest.slug}` : "/blog"
-}
 
 // Homepage has no navbar header, just a full-viewport hero and about section
 export const HomeView: m.Component = {
@@ -29,8 +24,8 @@ export const HomeView: m.Component = {
                 ]),
                 m("nav", { class: styles.heroNav }, [
                     m("a", { href: "#about", class: "cutout" }, "About"),
-                    m(m.route.Link, { href: "/blog", class: "cutout" }, "Blog"),
-                    m(m.route.Link, { href: "/portfolio", class: "cutout" }, "Work"),
+                    m(m.route.Link, { href: "/blog/", class: "cutout" }, "Blog"),
+                    m(m.route.Link, { href: "/portfolio/", class: "cutout" }, "Work"),
                 ]),
             ]),
 

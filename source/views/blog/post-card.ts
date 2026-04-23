@@ -13,7 +13,7 @@ interface PostCardAttrs {
 export const PostCard: m.Component<PostCardAttrs> = {
     view(vnode) {
         const { post, expanded } = vnode.attrs
-        const postUrl = `/blog/${post.year}/${post.month}/${post.slug}`
+        const postUrl = `/blog/${post.year}/${post.month}/${post.slug}/`
 
         return m("article", { class: styles.article }, [
             m("header", { class: styles.header }, [

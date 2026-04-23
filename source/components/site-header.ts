@@ -17,8 +17,8 @@ export const SiteHeader: m.Component = {
             m("div", { class: styles.container }, [
                 m("nav", { class: styles.left }, [
                     m(m.route.Link, { href: "/", class: "cutout" }, "Home"),
-                    m(m.route.Link, { href: "/blog", class: "cutout" }, "Blog"),
-                    m(m.route.Link, { href: "/portfolio", class: "cutout" }, "Portfolio"),
+                    m(m.route.Link, { href: "/blog/", class: "cutout" }, "Blog"),
+                    m(m.route.Link, { href: "/portfolio/", class: "cutout" }, "Portfolio"),
                 ]),
                 m("aside", { class: styles.right }, [
                     m("a", { href: "/feed.xml", class: "cutout" }, "RSS"),
