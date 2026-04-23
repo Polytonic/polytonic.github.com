@@ -7,7 +7,7 @@
         "prebuild": "rm -rf dist .parcel-cache && bun run scripts/build-content.ts && bun run typecheck",
         "prestart": "bun run scripts/build-content.ts",
         "build": "parcel build --no-source-maps",
-        "start": "parcel serve",
+        "start": "bun run scripts/dev.ts",
         "typecheck": "tsc --noEmit",
         "clean": "rm -rf dist .parcel-cache source/content/posts.ts source/content/portfolio.ts"
     },

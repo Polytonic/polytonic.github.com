@@ -1,6 +1,6 @@
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, copyFileSync } from "fs"
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, copyFileSync, watch } from "fs"
 import { join, resolve } from "path"
-import { marked } from "marked"
+import { marked, Renderer } from "marked"
 import { markedHighlight } from "marked-highlight"
 import hljs from "highlight.js/lib/core"
 import cpp from "highlight.js/lib/languages/cpp"
@@ -25,6 +25,26 @@ marked.use(markedHighlight({
         return hljs.highlight(code, { language }).value
     },
 }))
+
+// Annotate external links with target=_blank + rel=noopener noreferrer so
+// marked-rendered anchors in post bodies match the hardening already applied
+// to Mithril-authored externals. Calls the default renderer to keep href/text
+// escaping intact, then prefixes the opening tag.
+function isExternalUrl(href: string): boolean {
+    if (!href.startsWith("http://") && !href.startsWith("https://")) return false
+    return !href.includes("tinycranes.com")
+}
+const defaultRenderer = new Renderer()
+marked.use({
+    renderer: {
+        link(token) {
+            const html = defaultRenderer.link.call(this, token)
+            if (!html.startsWith("<a ")) return html
+            if (!isExternalUrl(token.href)) return html
+            return `<a target="_blank" rel="noopener noreferrer" ${html.slice(3)}`
+        },
+    },
+})
 
 // Configure marked to match original site behavior
 marked.setOptions({ breaks: true, gfm: true })
@@ -319,6 +339,23 @@ function buildPortfolio(): void {
     console.log(`Built ${slugOrder.length} portfolio items`)
 }
 
+// Strip XML-illegal control characters (U+0000-U+0008, U+000B, U+000C,
+// U+000E-U+001F). These are forbidden per XML 1.0 §2.2 even inside CDATA,
+// so a stray vertical tab or form feed in authored content would break feed
+// validators. Kept as an explicit loop rather than a regex per project style.
+function scrubXmlControlChars(text: string): string {
+    let out = ""
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i)
+        const illegal = (code >= 0x00 && code <= 0x08)
+            || code === 0x0B
+            || code === 0x0C
+            || (code >= 0x0E && code <= 0x1F)
+        if (!illegal) out += text[i]
+    }
+    return out
+}
+
 // Generate RSS feed XML
 function buildRssFeed(posts: Post[]): void {
     if (!existsSync(DIST_DIR)) mkdirSync(DIST_DIR, { recursive: true })
@@ -337,8 +374,9 @@ function buildRssFeed(posts: Post[]): void {
         // Trailing slash matches the SPA's canonical URL form, so feed-reader
         // clicks land on the canonical URL without a replaceState round-trip.
         const link = `https://www.tinycranes.com/blog/${post.year}/${post.month}/${post.slug}/`
-        // CDATA cannot contain a literal `]]>`; split any occurrence.
-        const body = post.body.replaceAll("]]>", "]]]]><![CDATA[>")
+        // Scrub XML-illegal control chars first, then split any literal `]]>`
+        // since CDATA can't contain it directly.
+        const body = scrubXmlControlChars(post.body).replaceAll("]]>", "]]]]><![CDATA[>")
         return [
             `        <item>`,
             `            <title>${escapeXml(post.title)}</title>`,
@@ -346,7 +384,7 @@ function buildRssFeed(posts: Post[]): void {
             `            <guid isPermaLink="true">${link}</guid>`,
             `            <pubDate>${new Date(post.datetime).toUTCString()}</pubDate>`,
             `            <author>${escapeXml(managingEditor)}</author>`,
-            `            <description>${escapeXml(post.description)}</description>`,
+            `            <description>${escapeXml(scrubXmlControlChars(post.description))}</description>`,
             `            <content:encoded><![CDATA[${body}]]></content:encoded>`,
             `        </item>`,
         ].join("\n")
@@ -412,7 +450,36 @@ function copyStaticAssets(): void {
     console.log("Copied static assets")
 }
 
-// Run
-buildPosts()
-buildPortfolio()
-copyStaticAssets()
+function runAll(): void {
+    buildPosts()
+    buildPortfolio()
+    copyStaticAssets()
+}
+
+if (process.argv.includes("--watch")) {
+    // Skip initial build if another process already seeded the content modules
+    // (e.g., via prestart). Keeps Parcel's first incremental from racing us.
+    if (!existsSync(join(OUTPUT_DIR, "posts.ts"))) runAll()
+
+    console.log(`Watching ${CONTENT_DIR} for .md changes...`)
+    let pending: ReturnType<typeof setTimeout> | null = null
+    watch(CONTENT_DIR, { recursive: true }, (event, filename) => {
+        // Only markdown changes trigger a rebuild. Asset reads by
+        // copyStaticAssets update atime on content files, which would
+        // otherwise fire "change" events and loop forever.
+        if (!filename || !filename.endsWith(".md")) return
+        console.log(`[${event}] ${filename}`)
+        // Editors fire multiple events per save; debounce briefly.
+        if (pending) clearTimeout(pending)
+        pending = setTimeout(() => {
+            try {
+                runAll()
+                console.log("Rebuilt.")
+            } catch (error) {
+                console.error("Build failed:", error instanceof Error ? error.message : error)
+            }
+        }, 100)
+    })
+} else {
+    runAll()
+}

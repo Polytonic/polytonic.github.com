@@ -64,11 +64,13 @@
     padding: 0.25rem;
 }
 
+/* 400px minmax lands at 3 columns on desktop (17 items → 5 full rows + 2 in
+   the last row). 300px produced 4 columns with a single orphan card. */
 .grid {
     max-width: 1440px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 0;
 }
 

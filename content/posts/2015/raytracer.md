@@ -228,6 +228,9 @@ If all goes well, you should see an animated scene below, assuming your computer
 
 <iframe id="live-demo"
         src="https://www.shadertoy.com/embed/4ljGRd?gui=true&paused=false"
+        sandbox="allow-scripts allow-same-origin"
+        referrerpolicy="no-referrer"
+        loading="lazy"
         width="100%" height="380px" frameborder="0" allowfullscreen></iframe>
 
 So, to recap, this was my first foray into ray tracing. Originally, I wanted to write this using the OpenGL Compute Shader. That was harder to setup than I originally anticipated, and I spent a fair bit of time mucking around with OpenGL and cmake before deciding to just sit down and start programming.
