@@ -1,42 +1,47 @@
-# [TinyCranes](//www.tinycranes.com/)
-[![Dependency Status](http://img.shields.io/gemnasium/Polytonic/TinyCranes.svg?style=flat-square)](https://gemnasium.com/Polytonic/TinyCranes)
+# [TinyCranes](https://www.tinycranes.com/)
 
-## Summary
-This is the full source code for my personal website. It's a bit of a mess, but if you were interested, here you go. It was originally statically generated using [CodeKit](https://incident57.com/codekit/), so I threw this together rather quickly on Node.js. A future rewrite will more than likely be done using Python or something with a sane, ordered-hashtable implementation.
+Personal website and blog. A Mithril SPA with build-time content compilation, deployed to GitHub Pages on push.
 
-## Getting Started
-This application intended for deploy-on-push to Heroku, so you'll need to have an account there. Once the application is up and running, you'll need to set some environment variables.
+## Stack
 
-```haskell
-heroku config:set NODE_ENV=production           # Use Production Node
-heroku config:set NEW_RELIC_NO_CONFIG_FILE=true # Enable New Relic
-heroku config:set TZ="America/New_York"         # Set Dyno Time Zone
+- Mithril 2 + TypeScript. Parcel bundles, Bun installs and runs.
+- Content authored as Markdown with YAML frontmatter. `scripts/build-content.ts` compiles posts and portfolio items into static TypeScript modules, emits `feed.xml` and `rss.xml`, and copies media into `dist/`.
+- Syntax highlighting runs at build time via highlight.js (a11y-dark theme), so the client ships pre-tokenized HTML with no runtime highlighter.
+
+## Development
+
+```sh
+bun install
+bun run start      # dev server, rebuilds on content change
+bun run build      # production build into dist/
+bun run typecheck  # tsc --noEmit
 ```
 
-You'll also need to set a Google Analytics tracking code and configure Typekit.
+## Content
 
-## Documentation
-Blog posts are written in Markdown, and should carry a YAML Front Matter header. You must supply a title key and value, from which a slug will be generated. For sorting to work, provide a full datetime string that is compatible with [Date.parse()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). The meta description will be generated from the first 200 (or fewer) characters of the post. If the post body exceeds a certain length, the post will trigger a truncated preview format. Override the preview format by setting `preview: false`. An example post is shown below:
+- Blog posts: `content/posts/`, one Markdown file per post. Frontmatter requires `title` and `datetime`; set `preview: false` to opt out of list-view truncation. An example:
 
-```markdown
----
-title: Second Test Post
-datetime: 2015-04-14 18:55:49 -0400
-preview: false
----
-She explained that they had as much as thirty pounds in gold, besides a five-pound note, and suggested that with that they might get upon a train at St. Albans or New Barnet. My brother thought that was hopeless, seeing the fury of the Londoners to crowd upon the trains, and broached his own idea of striking across Essex towards Harwich and thence escaping from the country altogether. Mrs. Elphinstone--that was the name of the woman in white--would listen to no reasoning, and kept calling upon "George"; but her sister-in-law was astonishingly quiet and deliberate, and at last agreed to my brother's suggestion.
-```
+  ```markdown
+  ---
+  title: Second Test Post
+  datetime: 2015-04-14 18:55:49 -0400
+  preview: false
+  ---
+  Post body here...
+  ```
 
-I use a hybrid static/dynamic architecture, mostly an artifact of my original build process. This is really dirty code, but over time, the warts in this codebase should disappear. At some point, I'll document my source code with some sort of annotated viewer. Likely [groc](//github.com/nevir/groc) or [slate](//github.com/tripit/slate).
+- Portfolio items: `content/portfolio/<slug>/entry.md`. Asset directories and shared PDFs live under `content/portfolio/` alongside the slug folders.
 
+## Deploy
+
+Pushes to `master` trigger `.github/workflows/deploy.yml`. The workflow builds with Bun and publishes `dist/` to GitHub Pages. `index.html` is copied to `404.html` so the SPA handles deep links on direct load.
 
 ## License
->The MIT License (MIT)
 
->Copyright (c) 2016 Kevin Fung
+MIT. Copyright (c) 2016 Kevin Fung.
 
->Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
->The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
->THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
