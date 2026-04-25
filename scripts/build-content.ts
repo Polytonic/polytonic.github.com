@@ -443,9 +443,7 @@ function copyStaticAssets(): void {
         cpSync(join(CONTENT_DIR, "portfolio", slug), join(DIST_DIR, "portfolio", slug), { recursive: true })
     }
 
-    // Avatar currently lives in the legacy browser/ tree; move to a non-legacy
-    // location when that directory is removed.
-    copyFileSync(join(ROOT, "browser/avatar.jpg"), join(DIST_DIR, "avatar.jpg"))
+    copyFileSync(join(CONTENT_DIR, "avatar.jpg"), join(DIST_DIR, "avatar.jpg"))
 
     console.log("Copied static assets")
 }
