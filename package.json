@@ -8,6 +8,7 @@
         "prestart": "bun run scripts/build-content.ts",
         "build": "parcel build --no-source-maps",
         "start": "bun run scripts/dev.ts",
+        "test": "bun test",
         "typecheck": "tsc --noEmit",
         "clean": "rm -rf dist .parcel-cache source/content/posts.ts source/content/portfolio.ts"
     },

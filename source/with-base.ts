@@ -4,42 +4,38 @@
 // absolute internal paths so a single build serves both root and subpath
 // targets cleanly. rewriteMarkdownPaths() does the same for author-rendered
 // HTML strings, where path construction has already happened at build time.
+//
+// The pure helpers (buildPrefix, joinBase, trimBase, rewritePathsIn) take
+// the prefix as a parameter so tests can exercise them without a DOM. The
+// module-level exports below bind them to APP_BASE_PREFIX read from the
+// page's <meta> tag at load time.
 
-export const APP_BASE: string =
-    document.querySelector("meta[name=app-base]")?.getAttribute("content") || "/"
+// Pure helpers — no DOM, safe to import in tests.
 
-export const APP_BASE_PREFIX: string =
-    APP_BASE === "/" ? "" : APP_BASE.slice(0, -1)
-
-// Prepend the deploy prefix to a root-absolute internal path. External URLs
-// and protocol-relative URLs pass through untouched.
-export function withBase(path: string): string {
-    if (!APP_BASE_PREFIX) return path
-    if (!path.startsWith("/")) return path
-    if (path.startsWith("//")) return path
-    return APP_BASE_PREFIX + path
+export function buildPrefix(base: string): string {
+    return base === "/" ? "" : base.slice(0, -1)
 }
 
-// Strip the deploy prefix from a pathname so internal route checks see the
-// logical app path (e.g. "/blog/post/") regardless of subpath deployment.
-export function stripBase(pathname: string): string {
-    if (APP_BASE_PREFIX && pathname.startsWith(APP_BASE_PREFIX)) {
-        return pathname.slice(APP_BASE_PREFIX.length) || "/"
+export function joinBase(prefix: string, path: string): string {
+    if (!prefix) return path
+    if (!path.startsWith("/")) return path
+    if (path.startsWith("//")) return path
+    return prefix + path
+}
+
+export function trimBase(prefix: string, pathname: string): string {
+    if (prefix && pathname.startsWith(prefix)) {
+        return pathname.slice(prefix.length) || "/"
     }
     return pathname
 }
 
-// Rewrite root-absolute src= and href= attribute values inside an HTML
-// string so author-rendered markdown picks up the deploy prefix at runtime.
-// Build-time HTML compilation in scripts/build-content.ts emits absolute
-// "/uploads/..." paths because it doesn't know the deploy URL; this
-// rewrites them on render. Skips protocol-relative URLs ("//host/...").
-export function rewriteMarkdownPaths(html: string): string {
-    if (!APP_BASE_PREFIX) return html
-    return prefixAttribute(prefixAttribute(html, "src"), "href")
+export function rewritePathsIn(prefix: string, html: string): string {
+    if (!prefix) return html
+    return prefixAttribute(prefix, prefixAttribute(prefix, html, "src"), "href")
 }
 
-function prefixAttribute(html: string, attribute: string): string {
+function prefixAttribute(prefix: string, html: string, attribute: string): string {
     const target = `${attribute}="/`
     let out = ""
     let cursor = 0
@@ -51,8 +47,29 @@ function prefixAttribute(html: string, attribute: string): string {
         if (next === "/") {
             out += target
         } else {
-            out += `${attribute}="${APP_BASE_PREFIX}/`
+            out += `${attribute}="${prefix}/`
         }
         cursor = hit + target.length
     }
+}
+
+// Module-level bindings for the running app. Guarded so the module loads in
+// non-DOM environments (Bun test runner) without crashing.
+
+export const APP_BASE: string = typeof document === "undefined"
+    ? "/"
+    : document.querySelector("meta[name=app-base]")?.getAttribute("content") || "/"
+
+export const APP_BASE_PREFIX: string = buildPrefix(APP_BASE)
+
+export function withBase(path: string): string {
+    return joinBase(APP_BASE_PREFIX, path)
+}
+
+export function stripBase(pathname: string): string {
+    return trimBase(APP_BASE_PREFIX, pathname)
+}
+
+export function rewriteMarkdownPaths(html: string): string {
+    return rewritePathsIn(APP_BASE_PREFIX, html)
 }
