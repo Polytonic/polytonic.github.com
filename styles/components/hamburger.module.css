@@ -1,6 +1,6 @@
-/* Hamburger animation timing */
-:root {
-    --hamburger-speed: 0.4s;
+/* Hamburger animation timing. --menu-offset is scoped to the root nav so
+   the token doesn't leak into the global :root. */
+.container {
     --menu-offset: 5vw;
 }
 
@@ -24,7 +24,7 @@
     appearance: none;
     background-color: var(--color-surface);
     border: 0;
-    border-radius: 0.125rem;
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-soft);
     cursor: pointer;
     padding: 0;
@@ -33,7 +33,7 @@
     right: var(--menu-offset);
     height: 2.75rem;
     width: 2.75rem;
-    z-index: 20;
+    z-index: var(--z-overlay);
     display: block;
 }
 
@@ -57,7 +57,7 @@
     top: 50%;
     left: 50%;
     margin: -1px -10px;
-    transition: background var(--hamburger-speed), transform var(--hamburger-speed);
+    transition: background var(--duration-slow), transform var(--duration-slow);
     transform: rotate(0deg);
 }
 
@@ -69,7 +69,7 @@
     background: var(--color-accent);
     width: 100%;
     height: 100%;
-    transition: transform var(--hamburger-speed);
+    transition: transform var(--duration-slow);
 }
 
 .button span::before {
@@ -86,7 +86,7 @@
 .buttonExpanded span {
     background: transparent;
     transform: rotate(180deg);
-    transition: transform var(--hamburger-speed);
+    transition: transform var(--duration-slow);
 }
 
 .buttonExpanded span::before {
@@ -101,7 +101,7 @@
 
 /* Slide-in menu */
 .menu {
-    border-radius: 0.125rem;
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-soft);
     width: calc(100vw - 2 * var(--menu-offset));
     position: fixed;
@@ -112,17 +112,17 @@
     overflow: hidden;
     transform: scale(0);
     transform-origin: 100% 0%;
-    transition: transform var(--hamburger-speed), visibility var(--hamburger-speed);
+    transition: transform var(--duration-slow), visibility var(--duration-slow);
     list-style-type: none;
     padding: 0;
     margin: 0;
-    z-index: 20;
+    z-index: var(--z-overlay);
 }
 
 .menuVisible {
     visibility: visible;
     transform: scale(1);
-    transition: transform var(--hamburger-speed), visibility var(--hamburger-speed);
+    transition: transform var(--duration-slow), visibility var(--duration-slow);
 }
 
 .menuVisible li {
@@ -142,7 +142,7 @@
     border-bottom: 1px solid var(--color-border);
     color: var(--color-accent);
     font-weight: 700;
-    transition: color calc(var(--hamburger-speed) * 0.75), background-color calc(var(--hamburger-speed) * 0.75);
+    transition: color var(--duration-fast), background-color var(--duration-fast);
 }
 
 @media (hover: hover) {
@@ -162,13 +162,27 @@
     .button {
         visibility: hidden;
         transform: scale(0);
-        transition: transform var(--hamburger-speed), visibility var(--hamburger-speed);
+        transition: transform var(--duration-slow), visibility var(--duration-slow);
     }
 
     .fixed .button {
         visibility: visible;
         transform: scale(1);
-        animation: bounce var(--hamburger-speed) ease-in-out;
-        transition: all var(--hamburger-speed);
+        animation: bounce var(--duration-slow) ease-in-out;
+        transition: all var(--duration-slow);
+    }
+}
+
+/* Windows High Contrast. Author backgrounds collapse to Canvas, which would
+   render the three-bar icon invisible. Pinning to CanvasText preserves the
+   glyph in both rest and expanded states. */
+@media (forced-colors: active) {
+    .button span,
+    .button span::before,
+    .button span::after {
+        background: CanvasText;
+    }
+    .buttonExpanded span {
+        background: transparent;
     }
 }

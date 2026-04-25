@@ -8,9 +8,12 @@ export const SiteHeader: m.Component = {
     view() {
         return m("header", { class: styles.navbar, "data-navbar": true }, [
 
-            // Mobile: logotype
+            // Mobile: logotype. The brand is site chrome, not a document
+            // heading, so it's a <p> rather than an <h1>. That keeps each
+            // page's own h1 (post title, archive, etc.) as the top of its
+            // outline without fighting the site identity wordmark.
             m("div", { class: styles.logotype },
-                m("h1", m(m.route.Link, { href: "/" }, "TinyCranes")),
+                m("p", m(m.route.Link, { href: "/" }, "TinyCranes")),
             ),
 
             // Desktop: nav links

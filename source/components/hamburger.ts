@@ -36,13 +36,45 @@ export const Hamburger: m.ClosureComponent = () => {
     }
 
     function onKeydown(event: KeyboardEvent): void {
-        if (event.key === "Escape" && expanded) {
+        if (!expanded) return
+
+        if (event.key === "Escape") {
             expanded = false
             // Flush the DOM update before moving focus so the button's
             // aria-expanded="false" / aria-label="Open menu" are current
             // when screen readers announce the focus landing.
             m.redraw.sync()
             buttonEl?.focus()
+            return
+        }
+
+        // Cycle Tab within the open disclosure (button + menu links). Keeps
+        // keyboard focus visible within the overlay rather than escaping into
+        // the obscured page content.
+        if (event.key === "Tab") {
+            const menuEl = document.getElementById(MENU_ID)
+            if (!menuEl || !buttonEl) return
+            const focusables: HTMLElement[] = [
+                buttonEl,
+                ...menuEl.querySelectorAll<HTMLElement>("a"),
+            ]
+            const active = document.activeElement
+            const index = active instanceof HTMLElement ? focusables.indexOf(active) : -1
+            // Focus drifted outside the overlay (click on the unobscured page,
+            // devtools, extensions). Pull it back to the button so Tab can't
+            // walk into page content that's visually hidden under the overlay.
+            if (index === -1) {
+                event.preventDefault()
+                buttonEl.focus()
+                return
+            }
+            if (event.shiftKey && index === 0) {
+                event.preventDefault()
+                focusables[focusables.length - 1]?.focus()
+            } else if (!event.shiftKey && index === focusables.length - 1) {
+                event.preventDefault()
+                focusables[0]?.focus()
+            }
         }
     }
 
@@ -78,7 +110,16 @@ export const Hamburger: m.ClosureComponent = () => {
                     onclick() { expanded = !expanded },
                 }, m("span")),
 
-                m("ul", { id: MENU_ID, class: menuClass },
+                m("ul", {
+                    id: MENU_ID,
+                    class: menuClass,
+                    // aria-hidden + inert keep the menu out of the tab order
+                    // and the a11y tree whenever it's not fully open. The
+                    // visibility transition lasts 400ms, and during that
+                    // window the links are still DOM-focusable without this.
+                    "aria-hidden": expanded ? undefined : "true",
+                    inert: expanded ? undefined : true,
+                },
                     MENU_LINKS.map((link, index) =>
                         m("li", {
                             key: link.label,

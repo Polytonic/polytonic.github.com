@@ -16,11 +16,12 @@ export const ProjectCard: m.Component<ProjectCardAttrs> = {
         const isDeprecated = DEPRECATED_GAMES.has(item.slug)
 
         return m("div", { class: styles.card, id: item.slug }, [
+            // Decorative thumbnail; title heading is the authoritative label.
             item.image
                 ? m("img", {
                     class: styles.image,
                     src: `/portfolio/assets/${item.image}`,
-                    alt: item.title,
+                    alt: "",
                     loading: "lazy",
                 })
                 : null,
@@ -33,10 +34,20 @@ export const ProjectCard: m.Component<ProjectCardAttrs> = {
                     ? m("nav", { class: styles.links },
                         Object.entries(item.links).map(([label, url]) => {
                             if (label === "Play" && isDeprecated) {
+                                const reason = "This game used the Unity Web Player plugin, which is no longer supported by modern browsers."
                                 return m("span", {
                                     key: label,
                                     class: ["cutout", styles.disabled].join(" "),
-                                    title: "This game used the Unity Web Player plugin, which is no longer supported by modern browsers.",
+                                    role: "button",
+                                    "aria-disabled": "true",
+                                    tabindex: "0",
+                                    "aria-label": `${label} unavailable: ${reason}`,
+                                    title: reason,
+                                    onkeydown(event: KeyboardEvent) {
+                                        // Space on a focused role=button span defaults to page scroll.
+                                        // aria-disabled means no activation, so swallow the key.
+                                        if (event.key === " ") event.preventDefault()
+                                    },
                                 }, label)
                             }
                             return m("a", {

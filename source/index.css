@@ -4,10 +4,12 @@ body { margin: 0; }
 input, button, select, textarea { font: inherit; }
 
 /* Design tokens: Grolleg color scheme. Interactive variants derive from the
-   base accent via color-mix so a future dark-mode swap only changes the base. */
+   base accent via color-mix so a future dark-mode swap only changes the base.
+   Hover darkens (not lightens) because accent is used as foreground on a
+   cream background; lightening would drop contrast below WCAG AA (4.5:1). */
 :root {
     --color-accent: #386B8C;
-    --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, white);
+    --color-accent-hover: color-mix(in srgb, var(--color-accent) 92%, black);
     --color-accent-press: color-mix(in srgb, var(--color-accent) 85%, black);
 
     --color-text: #2D2D32;
@@ -18,14 +20,25 @@ input, button, select, textarea { font: inherit; }
     --color-surface: #FFFFFF;
     --color-border: #C8C9C1;
 
-    --color-error: #D71910;
-
     --shadow-soft: 0 0 0.5rem color-mix(in srgb, var(--color-text) 15%, transparent);
     --shadow-card: 0 0.1rem 0.5rem color-mix(in srgb, var(--color-text) 25%, transparent);
 
     --font-heading: "Segoe UI", system-ui, sans-serif;
     --font-body: "Segoe UI", system-ui, sans-serif;
     --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+
+    /* Overlay stacking tier. Claimed by the hamburger button and menu. */
+    --z-overlay: 20;
+
+    /* Transition durations for interactive feedback. */
+    --duration-fast: 0.15s;
+    --duration-slow: 0.4s;
+
+    /* Corner radius tiers. */
+    --radius-sm: 2px;
+    --radius-md: 3px;
+    --radius-lg: 6px;
+    --radius-round: 50%;
 }
 
 /* Base typography */
@@ -57,9 +70,11 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 0 0.5em;
 }
 
-h1 { font-size: 28px; }
-h2 { font-size: 22px; }
-h3 { font-size: 18px; }
+/* Headings use rem so they scale with the user's root font-size preference
+   (accessibility). h4-h6 inherit from the browser default. */
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.375rem; }
+h3 { font-size: 1.125rem; }
 
 p {
     margin: 0 0 1em;
@@ -92,14 +107,21 @@ code, pre {
     font-size: 14px;
 }
 
+/* Pre blocks own the dark background so code.hljs can render its token colors
+   (designed for dark backgrounds by a11y-dark) at their intended contrast.
+   Leaving the background off page-cream would push several highlight tokens
+   below WCAG AA. forced-color-adjust: none preserves the dark surface in
+   Windows High Contrast; without it the hljs palette collapses against a
+   light Canvas and fails contrast for several tokens. */
 pre {
     padding: 1em;
-    border-radius: 6px;
+    background: var(--color-text);
+    border-radius: var(--radius-lg);
     overflow-x: auto;
     margin: 0 0 1em;
+    forced-color-adjust: none;
 }
 
-/* highlight.js-tokenized code: the theme provides color + background */
 pre code.hljs {
     padding: 0;
     background: transparent;
@@ -109,7 +131,7 @@ pre code.hljs {
 code:not(.hljs) {
     background: var(--color-border);
     padding: 0.15em 0.4em;
-    border-radius: 3px;
+    border-radius: var(--radius-md);
 }
 
 blockquote {
@@ -140,7 +162,7 @@ th {
    design; an invisible ::before expands the click/tap target to the WCAG
    44x44 minimum without altering layout. */
 .cutout {
-    border: 0.24rem solid;
+    border: 0.24rem solid currentColor;
     color: var(--color-accent);
     display: inline-block;
     font-family: var(--font-heading);
@@ -152,13 +174,17 @@ th {
     position: relative;
     text-align: center;
     text-transform: uppercase;
-    transition: color 0.15s ease-out, background-color 0.15s ease-out;
+    transition: color var(--duration-fast) ease-out, background-color var(--duration-fast) ease-out;
 }
 
 .cutout::before {
     content: "";
     position: absolute;
     inset: -0.5rem;
+}
+
+.cutout[aria-disabled="true"]::before {
+    cursor: not-allowed;
 }
 
 @media (hover: hover) {
@@ -171,12 +197,53 @@ th {
     color: var(--color-accent-press);
 }
 
+/* Disabled variant: aria-disabled cutouts must not signal interactivity on
+   press. The active-color override keeps the muted state through tap/click,
+   and the muted focus-visible outline stops the accent ring from implying
+   the disabled control is activatable. */
+.cutout[aria-disabled="true"]:active {
+    color: var(--color-text-muted);
+}
+
+.cutout[aria-disabled="true"]:focus-visible {
+    outline-color: var(--color-text-muted);
+}
+
+/* Windows High Contrast / forced-colors mode. The cutout border defaults to
+   currentColor, which gets remapped by the UA. Pinning to CanvasText keeps
+   the outline visible, and GrayText on the disabled variant preserves the
+   enabled/disabled distinction when the accent palette is overridden. */
+@media (forced-colors: active) {
+    .cutout {
+        border-color: CanvasText;
+    }
+    .cutout[aria-disabled="true"] {
+        border-color: GrayText;
+        color: GrayText;
+    }
+}
+
 /* Width-constrained block for fallback/empty-state messages (not-found,
    post-not-found, empty-filter). */
 .content-width {
     margin: 2rem auto;
     width: 90vw;
     max-width: 640px;
+}
+
+/* Visually hidden but kept in the accessibility tree. Use for page-level h1s
+   on list views that shouldn't show a visible title but still need the
+   landmark heading for screen readers. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* Respect prefers-reduced-motion across the site. Tiny non-zero durations

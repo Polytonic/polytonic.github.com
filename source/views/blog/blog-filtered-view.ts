@@ -21,16 +21,20 @@ export const BlogFilteredView: m.Component<BlogFilteredRouteAttrs> = {
             return true
         })
 
+        const filterLabel = month ? `Posts from ${month}/${year}` : `Posts from ${year}`
+
         if (filtered.length === 0) {
             return m(Layout,
-                m("div", { class: "content-width" },
+                m("div", { class: "content-width" }, [
+                    m("h1", { class: "visually-hidden" }, filterLabel),
                     m("p", "No posts found."),
-                ),
+                ]),
             )
         }
 
         return m(Layout, [
             m("div", { class: styles.entry }, [
+                m("h1", { class: "visually-hidden" }, filterLabel),
                 filtered.map(post =>
                     m(PostCard, { key: post.slug, post, expanded: false }),
                 ),

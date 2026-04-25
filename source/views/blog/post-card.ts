@@ -17,8 +17,9 @@ export const PostCard: m.Component<PostCardAttrs> = {
 
         return m("article", { class: styles.article }, [
             m("header", { class: styles.header }, [
+                // Standalone post view is the page's primary heading.
                 expanded
-                    ? m("h2", { class: styles.title }, post.title)
+                    ? m("h1", { class: styles.title }, post.title)
                     : m("h2", { class: styles.title },
                         m(m.route.Link, { href: postUrl }, post.title),
                     ),
@@ -27,8 +28,9 @@ export const PostCard: m.Component<PostCardAttrs> = {
                 ),
             ]),
 
+            // Decorative splash; title heading is the authoritative label.
             post.image
-                ? m("img", { class: styles.splash, src: post.image, alt: post.title })
+                ? m("img", { class: styles.splash, src: post.image, alt: "" })
                 : null,
 
             expanded

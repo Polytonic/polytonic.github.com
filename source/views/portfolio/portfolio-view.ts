@@ -30,17 +30,6 @@ export const PortfolioView: m.Component = {
                         m("a", { href: "https://rpi.edu/", target: "_blank", rel: "noopener noreferrer" }, "Rensselaer Polytechnic Institute"),
                         ". I've collaborated with many people; you should check out their portfolios too!",
                     ]),
-
-                    // Table of contents
-                    m("nav", { class: styles.toc },
-                        m("ul",
-                            portfolio.map(item =>
-                                m("li", { key: item.slug },
-                                    m("a", { href: `#${item.slug}` }, item.title),
-                                ),
-                            ),
-                        ),
-                    ),
                 ]),
             ]),
 

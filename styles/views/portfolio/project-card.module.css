@@ -1,7 +1,7 @@
 .card {
     background-color: var(--color-surface);
     margin: 0.75rem;
-    border-radius: 2px;
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-card);
     overflow: hidden;
     display: flex;
@@ -17,7 +17,7 @@
 .image {
     width: 100%;
     display: block;
-    border-radius: 2px 2px 0 0;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     box-shadow: 0 1px 1px color-mix(in srgb, var(--color-text) 10%, transparent);
 }
 

@@ -65,7 +65,7 @@
 
 .avatar {
     margin: 3rem auto;
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     border: 0.15rem solid var(--color-background);
     display: block;
     height: 6rem;

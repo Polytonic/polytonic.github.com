@@ -9,9 +9,10 @@
     margin-left: 1rem;
 }
 
-.logotype h1 {
+.logotype p {
     margin: 0;
     font-size: 1.5rem;
+    font-weight: 600;
 }
 
 .logotype a {
@@ -50,9 +51,12 @@
         gap: 0;
     }
 
+    /* Halos on adjacent cutouts extend 0.5rem each; keep 0.75rem margin so
+       the invisible hit zones have breathing room and clicks near boundaries
+       don't fall into the wrong target. */
     .left :global(.cutout) {
-        margin-left: 0.5rem;
-        margin-right: 0.5rem;
+        margin-left: 0.75rem;
+        margin-right: 0.75rem;
     }
 
     .right {
@@ -61,7 +65,7 @@
 
     .right :global(.cutout) {
         min-width: 0;
-        margin-left: 0.25rem;
-        margin-right: 0.25rem;
+        margin-left: 0.75rem;
+        margin-right: 0.75rem;
     }
 }

@@ -23,6 +23,9 @@ export const BlogListView: m.Component = {
 
         return m(Layout, [
             m("div", { class: styles.entry }, [
+                // Page-level heading for landmark/outline; the visual design
+                // is a year-grouped list, so the title stays offscreen.
+                m("h1", { class: "visually-hidden" }, "Blog"),
                 years.map(year =>
                     m("section", { key: year }, [
                         years.length > 1

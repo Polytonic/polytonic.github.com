@@ -23,16 +23,17 @@
     margin-bottom: 1rem;
 }
 
+/* Title leans on the global heading rules for size and leading so expanded
+   posts (h1) render larger than list cards (h2). Only card-specific spacing
+   lives here. */
 .title {
-    font-size: 22px;
     margin-bottom: 0.25rem;
-    line-height: 2.25rem;
 }
 
 .title a {
     color: var(--color-text);
     text-decoration: none;
-    transition: color 0.15s ease-out;
+    transition: color var(--duration-fast) ease-out;
 }
 
 @media (hover: hover) {
@@ -49,8 +50,7 @@
     font-family: var(--font-body);
     font-weight: 700;
     color: var(--color-text-muted);
-    font-size: 1.1rem;
-    margin-left: 0.1rem;
+    font-size: 1rem;
 }
 
 .splash {

@@ -40,6 +40,6 @@
     font-weight: 700;
     margin: 0;
     padding: 0;
-    line-height: 1.75rem;
+    line-height: 1.75;
     color: var(--color-text-muted);
 }
