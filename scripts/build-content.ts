@@ -210,7 +210,7 @@ function dateParts(datetime: Date): { year: string; month: string; monthName: st
 }
 
 // Build blog posts
-function buildPosts(): void {
+function buildPosts(): Post[] {
     const files = collectMarkdownFiles(POSTS_DIR)
     const posts: Post[] = []
 
@@ -281,10 +281,12 @@ function buildPosts(): void {
 
     // Generate RSS feed
     buildRssFeed(posts)
+
+    return posts
 }
 
 // Build portfolio items
-function buildPortfolio(): void {
+function buildPortfolio(): PortfolioItem[] {
     // Maintain original display order
     const slugOrder = [
         "hunt-and-peck", "flows", "yesterday", "winter", "sticks-and-stones",
@@ -293,6 +295,7 @@ function buildPortfolio(): void {
         "lost-manuscript", "mockingbird",
     ]
 
+    const items: PortfolioItem[] = []
     const lines = [
         `import type { PortfolioItem } from "./types"\n`,
         `export const portfolio: PortfolioItem[] = [`,
@@ -322,6 +325,7 @@ function buildPortfolio(): void {
             ),
             body: rewriteLinks(marked.parse(body.trim(), { async: false })),
         }
+        items.push(item)
 
         lines.push(`    {`)
         lines.push(`        title: ${JSON.stringify(item.title)},`)
@@ -337,6 +341,8 @@ function buildPortfolio(): void {
 
     writeFileSync(join(OUTPUT_DIR, "portfolio.ts"), lines.join("\n"))
     console.log(`Built ${slugOrder.length} portfolio items`)
+
+    return items
 }
 
 // Strip XML-illegal control characters (U+0000-U+0008, U+000B, U+000C,
@@ -445,13 +451,71 @@ function copyStaticAssets(): void {
 
     copyFileSync(join(CONTENT_DIR, "avatar.jpg"), join(DIST_DIR, "avatar.jpg"))
 
+    // OG image is optional — if the author drops one at content/og-image.png
+    // it ships at /og-image.png for og:image / twitter:image references.
+    const ogImage = join(CONTENT_DIR, "og-image.png")
+    if (existsSync(ogImage)) {
+        copyFileSync(ogImage, join(DIST_DIR, "og-image.png"))
+    }
+
     console.log("Copied static assets")
 }
 
+// Sitemap covers SPA routes that live at canonical URLs: home, blog list,
+// blog archive, portfolio, and one entry per post. Filtered-archive routes
+// are skipped since their content is the same posts under different filters.
+// All URLs use https://www.tinycranes.com because that is the site's canonical
+// origin regardless of where this build is deployed (subpath vs root).
+const CANONICAL_ORIGIN = "https://www.tinycranes.com"
+
+function buildSitemap(posts: Post[]): void {
+    const lastmod = (date: string): string => date.slice(0, 10)
+    const newestPost = posts[0]?.datetime ?? new Date().toISOString()
+
+    const urls: Array<{ loc: string; lastmod: string }> = [
+        { loc: "/",                  lastmod: lastmod(newestPost) },
+        { loc: "/blog/",             lastmod: lastmod(newestPost) },
+        { loc: "/blog/archive/",     lastmod: lastmod(newestPost) },
+        { loc: "/portfolio/",        lastmod: lastmod(newestPost) },
+    ]
+    for (const post of posts) {
+        urls.push({
+            loc: `/blog/${post.year}/${post.month}/${post.slug}/`,
+            lastmod: lastmod(post.datetime),
+        })
+    }
+
+    const xml = [
+        `<?xml version="1.0" encoding="UTF-8"?>`,
+        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+        ...urls.map(u =>
+            `    <url><loc>${CANONICAL_ORIGIN}${u.loc}</loc><lastmod>${u.lastmod}</lastmod></url>`,
+        ),
+        `</urlset>`,
+    ].join("\n")
+
+    writeFileSync(join(DIST_DIR, "sitemap.xml"), xml)
+    console.log(`Built sitemap (${urls.length} urls)`)
+}
+
+function buildRobotsTxt(): void {
+    const body = [
+        `User-agent: *`,
+        `Allow: /`,
+        ``,
+        `Sitemap: ${CANONICAL_ORIGIN}/sitemap.xml`,
+        ``,
+    ].join("\n")
+    writeFileSync(join(DIST_DIR, "robots.txt"), body)
+    console.log("Built robots.txt")
+}
+
 function runAll(): void {
-    buildPosts()
+    const posts = buildPosts()
     buildPortfolio()
     copyStaticAssets()
+    buildSitemap(posts)
+    buildRobotsTxt()
 }
 
 if (process.argv.includes("--watch")) {

@@ -93,14 +93,19 @@ document.addEventListener("click", (event) => {
 interface PageMeta {
     title?: string        // Route-specific title segment; joined as "{title} \u2022 TinyCranes"
     description?: string  // Meta description for this route
+    image?: string | null // Route-specific OG/Twitter image (root-absolute path, e.g. "/uploads/raytracer.png")
 }
 
+const CANONICAL_ORIGIN = "https://www.tinycranes.com"
 const DEFAULT_DESCRIPTION = "Software design and development. I build things."
+const DEFAULT_IMAGE = "/og-image.png"
 
 function setPageMeta(info: PageMeta): void {
     const fullTitle = info.title ? `${info.title} \u2022 TinyCranes` : "TinyCranes"
     const description = info.description ?? DEFAULT_DESCRIPTION
-    const canonical = `https://www.tinycranes.com${stripBase(window.location.pathname)}`
+    const canonical = `${CANONICAL_ORIGIN}${stripBase(window.location.pathname)}`
+    const imagePath = info.image ?? DEFAULT_IMAGE
+    const image = `${CANONICAL_ORIGIN}${imagePath}`
 
     document.title = fullTitle
 
@@ -109,12 +114,19 @@ function setPageMeta(info: PageMeta): void {
         ['meta[property="og:title"]', fullTitle],
         ['meta[property="og:description"]', description],
         ['meta[property="og:url"]', canonical],
+        ['meta[property="og:image"]', image],
         ['meta[name="twitter:title"]', fullTitle],
         ['meta[name="twitter:description"]', description],
+        ['meta[name="twitter:image"]', image],
     ]
     for (const [selector, content] of pairs) {
         document.querySelector(selector)?.setAttribute("content", content)
     }
+
+    // <link rel="canonical"> uses href, not content. Updated separately so
+    // search engines indexing the github.io URL during the DNS-transition
+    // window are pointed at the custom-domain origin.
+    document.querySelector('link[rel="canonical"]')?.setAttribute("href", canonical)
 }
 
 // Route resolver that updates the scroll position and page metadata on match.
@@ -152,7 +164,7 @@ m.route(root, "/", {
     "/blog/:year/:month/:slug/":   scrollRoute(BlogPostView,     ({ year, month, slug }) => {
         const post = posts.find(entry => entry.year === year && entry.month === month && entry.slug === slug)
         return post
-            ? { title: post.title, description: post.description }
+            ? { title: post.title, description: post.description, image: post.image }
             : { title: "Post not found" }
     }),
     "/portfolio/":                 scrollRoute(PortfolioView, () => ({ title: "Portfolio" })),
