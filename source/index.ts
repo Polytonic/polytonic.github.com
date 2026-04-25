@@ -13,16 +13,34 @@ import { NotFoundView } from "./views/not-found-view"
 import { posts } from "./content/posts"
 import { latestPostUrl } from "./content/queries"
 
-// Use clean URLs (no hash prefix)
-m.route.prefix = ""
+// Deploy base. The <meta name="app-base"> in index.html starts as "/" and the
+// GitHub Pages workflow rewrites it to "/<repo>/" for project-page (subpath)
+// deploys. APP_BASE_PREFIX is the same value with any trailing slash stripped,
+// suitable for Mithril's route prefix and for slicing URL pathnames.
+const APP_BASE = document.querySelector("meta[name=app-base]")?.getAttribute("content") || "/"
+const APP_BASE_PREFIX = APP_BASE === "/" ? "" : APP_BASE.replace(/\/$/, "")
+
+// Mithril history-mode routing. With a prefix set, m.route.set("/blog/")
+// pushes "/<repo>/blog/" to the URL, and incoming "/<repo>/blog/" matches
+// the "/blog/" pattern.
+m.route.prefix = APP_BASE_PREFIX
+
+// Strip the deploy prefix from a pathname so internal route checks see the
+// logical app path (e.g. "/blog/post/") regardless of subpath deployment.
+function stripBase(pathname: string): string {
+    if (APP_BASE_PREFIX && pathname.startsWith(APP_BASE_PREFIX)) {
+        return pathname.slice(APP_BASE_PREFIX.length) || "/"
+    }
+    return pathname
+}
 
 // Canonical URL form is trailing-slash (matches the pre-migration site and the
 // RSS feed's <link>/<guid>). Paths without a slash get one here on boot so
 // bookmarks + external links keep working; all internally-generated hrefs
 // include the slash to begin with.
-const currentPath = window.location.pathname
-if (currentPath !== "/" && !currentPath.endsWith("/")) {
-    const normalized = currentPath + "/" + window.location.search + window.location.hash
+const currentLogicalPath = stripBase(window.location.pathname)
+if (currentLogicalPath !== "/" && !currentLogicalPath.endsWith("/")) {
+    const normalized = APP_BASE_PREFIX + currentLogicalPath + "/" + window.location.search + window.location.hash
     window.history.replaceState(null, "", normalized)
 }
 
@@ -79,10 +97,11 @@ document.addEventListener("click", (event) => {
     // Use the anchor's resolved URL to uniformly handle relative and absolute hrefs.
     const url = new URL(anchor.href)
     if (url.origin !== window.location.origin) return
-    if (!isInternalSPAPath(url.pathname)) return
+    const path = stripBase(url.pathname)
+    if (!isInternalSPAPath(path)) return
 
     event.preventDefault()
-    m.route.set(canonicalPath(url.pathname) + url.search + url.hash)
+    m.route.set(canonicalPath(path) + url.search + url.hash)
 })
 
 // Per-route document metadata
@@ -96,7 +115,7 @@ const DEFAULT_DESCRIPTION = "Software design and development. I build things."
 function setPageMeta(info: PageMeta): void {
     const fullTitle = info.title ? `${info.title} \u2022 TinyCranes` : "TinyCranes"
     const description = info.description ?? DEFAULT_DESCRIPTION
-    const canonical = `https://www.tinycranes.com${window.location.pathname}`
+    const canonical = `https://www.tinycranes.com${stripBase(window.location.pathname)}`
 
     document.title = fullTitle
 

@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <!-- Deploy base. Defaults to "/" for custom-domain (root) deploys. The
+         GitHub Pages workflow rewrites this to "/<repo>/" for project-page
+         deploys so the SPA's router knows the URL prefix. The asset paths
+         themselves are baked at build time via parcel's --public-url flag. -->
+    <meta name="app-base" content="/">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://www.shadertoy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="author" content="Kevin Fung">
