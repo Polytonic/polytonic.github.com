@@ -1,4 +1,5 @@
 import m from "mithril"
+import { withBase } from "../with-base"
 import * as styles from "../../styles/components/site-footer.module.css"
 
 interface SiteFooterAttrs {
@@ -15,7 +16,7 @@ export const SiteFooter: m.Component<SiteFooterAttrs> = {
                 m("ul", [
                     m("li", m(m.route.Link, { href: "/blog/archive/" }, "Archive")),
                     m("li", m(m.route.Link, { href: latestUrl }, "Latest")),
-                    m("li", m("a", { href: "/feed.xml" }, "RSS")),
+                    m("li", m("a", { href: withBase("/feed.xml") }, "RSS")),
                 ]),
             ]),
             m("aside", [

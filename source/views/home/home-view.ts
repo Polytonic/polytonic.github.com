@@ -2,6 +2,7 @@ import m from "mithril"
 import { SiteFooter } from "../../components/site-footer"
 import { Hamburger } from "../../components/hamburger"
 import { latestPostUrl } from "../../content/queries"
+import { withBase } from "../../with-base"
 import * as styles from "../../../styles/views/home/home-view.module.css"
 
 const SOCIAL_LINKS = [
@@ -37,7 +38,7 @@ export const HomeView: m.Component = {
                     m("div", { class: styles.contents }, [
                         m("img", {
                             class: styles.avatar,
-                            src: "/avatar.jpg",
+                            src: withBase("/avatar.jpg"),
                             alt: "Kevin Fung",
                         }),
                         m("h2", { class: styles.aboutTitle }, "About Myself"),

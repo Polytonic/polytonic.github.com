@@ -2,6 +2,7 @@ import m from "mithril"
 import { portfolio } from "../../content/portfolio"
 import { Layout } from "../../components/layout"
 import { ProjectCard } from "./project-card"
+import { withBase } from "../../with-base"
 import * as styles from "../../../styles/views/portfolio/portfolio-view.module.css"
 
 export const PortfolioView: m.Component = {
@@ -16,7 +17,7 @@ export const PortfolioView: m.Component = {
                     m("p", "Previously, I was a software development engineer intern inside ", m("a", { href: "https://aws.amazon.com/", target: "_blank", rel: "noopener noreferrer" }, "Amazon Web Services"), ". I was exposed to a variety of image processing and video encoding domain topics while working on real-time streaming backends. Before that, I was a summer student at the ", m("a", { href: "https://www.nrl.navy.mil/", target: "_blank", rel: "noopener noreferrer" }, "United States Naval Research Laboratory"), ". I performed research on experimental and theoretical projects in fields of study including: underwater electrical discharges, target tracking, and parallel computing."),
                     m("p", [
                         "For more details, check out my ",
-                        m("a", { href: "/portfolio/documents/resume.pdf" }, "r\u00E9sum\u00E9"),
+                        m("a", { href: withBase("/portfolio/documents/resume.pdf") }, "r\u00E9sum\u00E9"),
                         ".",
                     ]),
                 ]),

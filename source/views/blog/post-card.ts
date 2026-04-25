@@ -2,6 +2,7 @@ import m from "mithril"
 import type { Post } from "../../content/types"
 import { DateDisplay } from "../../components/date-display"
 import { MarkdownContent } from "../../components/markdown-content"
+import { withBase } from "../../with-base"
 import * as styles from "../../../styles/views/blog/post-card.module.css"
 
 interface PostCardAttrs {
@@ -30,7 +31,7 @@ export const PostCard: m.Component<PostCardAttrs> = {
 
             // Decorative splash; title heading is the authoritative label.
             post.image
-                ? m("img", { class: styles.splash, src: post.image, alt: "" })
+                ? m("img", { class: styles.splash, src: withBase(post.image), alt: "" })
                 : null,
 
             expanded

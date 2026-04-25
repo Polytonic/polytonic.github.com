@@ -1,4 +1,5 @@
 import m from "mithril"
+import { withBase } from "../with-base"
 import * as styles from "../../styles/components/site-header.module.css"
 
 // Header with responsive behavior:
@@ -24,7 +25,7 @@ export const SiteHeader: m.Component = {
                     m(m.route.Link, { href: "/portfolio/", class: "cutout" }, "Portfolio"),
                 ]),
                 m("aside", { class: styles.right }, [
-                    m("a", { href: "/feed.xml", class: "cutout" }, "RSS"),
+                    m("a", { href: withBase("/feed.xml"), class: "cutout" }, "RSS"),
                 ]),
             ]),
         ])

@@ -1,6 +1,7 @@
 import m from "mithril"
 import type { PortfolioItem } from "../../content/types"
 import { MarkdownContent } from "../../components/markdown-content"
+import { withBase } from "../../with-base"
 import * as styles from "../../../styles/views/portfolio/project-card.module.css"
 
 interface ProjectCardAttrs {
@@ -20,7 +21,7 @@ export const ProjectCard: m.Component<ProjectCardAttrs> = {
             item.image
                 ? m("img", {
                     class: styles.image,
-                    src: `/portfolio/assets/${item.image}`,
+                    src: withBase(`/portfolio/assets/${item.image}`),
                     alt: "",
                     loading: "lazy",
                 })
@@ -52,7 +53,7 @@ export const ProjectCard: m.Component<ProjectCardAttrs> = {
                             }
                             return m("a", {
                                 key: label,
-                                href: url,
+                                href: withBase(url),
                                 target: url.startsWith("http") ? "_blank" : undefined,
                                 rel: url.startsWith("http") ? "noopener noreferrer" : undefined,
                                 class: "cutout",
