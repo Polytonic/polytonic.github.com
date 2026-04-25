@@ -135,7 +135,7 @@ code:not(.hljs) {
 }
 
 blockquote {
-    border-left: 3px solid var(--color-accent);
+    border-left: 0.1875rem solid var(--color-accent);
     margin: 0 0 1em;
     padding: 0.5em 1em;
     color: var(--color-text-muted);
@@ -174,7 +174,7 @@ th {
     position: relative;
     text-align: center;
     text-transform: uppercase;
-    transition: color var(--duration-fast) ease-out, background-color var(--duration-fast) ease-out;
+    transition: color var(--duration-fast) ease-out;
 }
 
 .cutout::before {
@@ -244,6 +244,29 @@ th {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+/* Skip link: hidden offscreen until focused. Reveals at the top-left of the
+   viewport so a keyboard user can jump past the header nav on every page. */
+.skip-link {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-surface);
+    color: var(--color-accent);
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-soft);
+    z-index: var(--z-overlay);
+    transform: translateY(-150%);
+    transition: transform var(--duration-fast) ease-out;
+}
+
+.skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
 }
 
 /* Respect prefers-reduced-motion across the site. Tiny non-zero durations

@@ -12,13 +12,13 @@ export const SiteFooter: m.Component<SiteFooterAttrs> = {
         const latestUrl = vnode.attrs.latestUrl ?? "/blog"
 
         return m("footer", { class: styles.footer }, [
-            m("nav", [
+            m("nav", { "aria-label": "Footer" },
                 m("ul", [
                     m("li", m(m.route.Link, { href: "/blog/archive/" }, "Archive")),
                     m("li", m(m.route.Link, { href: latestUrl }, "Latest")),
                     m("li", m("a", { href: withBase("/feed.xml") }, "RSS")),
                 ]),
-            ]),
+            ),
             m("aside", [
                 m("p", `\u00A9 ${new Date().getFullYear()} Kevin Fung`),
                 m("p", "Handcrafted in Washington D.C."),

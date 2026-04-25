@@ -1,5 +1,6 @@
-/* Hamburger animation timing. --menu-offset is scoped to the root nav so
-   the token doesn't leak into the global :root. */
+/* --menu-offset is scoped to the root nav so the token doesn't leak into
+   :root. Fixed-position descendants (.button, .menu) still inherit it via
+   the DOM tree. */
 .container {
     --menu-offset: 5vw;
 }
@@ -169,7 +170,17 @@
         visibility: visible;
         transform: scale(1);
         animation: bounce var(--duration-slow) ease-in-out;
-        transition: all var(--duration-slow);
+        transition: transform var(--duration-slow), visibility var(--duration-slow);
+    }
+}
+
+/* Reduced-motion: drop the per-item slide so links don't flash through
+   their entrance staircase one frame at a time. The global transition/
+   animation-duration override at index.css clamps to 0.01ms but keeps
+   animation-delay intact, which leaves a perceptible cascade otherwise. */
+@media (prefers-reduced-motion: reduce) {
+    .menuVisible li {
+        animation: none;
     }
 }
 

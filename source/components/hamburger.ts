@@ -17,6 +17,14 @@ export const Hamburger: m.ClosureComponent = () => {
     let expanded = false
     let fixed = false
     let buttonEl: HTMLElement | null = null
+    let menuEl: HTMLElement | null = null
+
+    // Lock body scroll while the overlay is open. Without this iOS Safari
+    // rubber-bands the obscured page when the user drags inside the menu,
+    // which is disorienting and makes the overlay feel detached.
+    function setBodyScrollLock(locked: boolean): void {
+        document.body.style.overflow = locked ? "hidden" : ""
+    }
 
     function checkScroll(): void {
         const navbar = document.querySelector("[data-navbar]")
@@ -28,9 +36,12 @@ export const Hamburger: m.ClosureComponent = () => {
             m.redraw()
         } else if (!scrolled && fixed) {
             // When scrolling back to the top the button hides, so the menu
-            // must close too or it would orphan off-screen.
+            // must close too or it would orphan off-screen. Release the body
+            // scroll lock here too — without it, scrolling-up while the menu
+            // is open closes the menu but leaves overflow:hidden stuck on.
             expanded = false
             fixed = false
+            setBodyScrollLock(false)
             m.redraw()
         }
     }
@@ -40,6 +51,7 @@ export const Hamburger: m.ClosureComponent = () => {
 
         if (event.key === "Escape") {
             expanded = false
+            setBodyScrollLock(false)
             // Flush the DOM update before moving focus so the button's
             // aria-expanded="false" / aria-label="Open menu" are current
             // when screen readers announce the focus landing.
@@ -52,7 +64,6 @@ export const Hamburger: m.ClosureComponent = () => {
         // keyboard focus visible within the overlay rather than escaping into
         // the obscured page content.
         if (event.key === "Tab") {
-            const menuEl = document.getElementById(MENU_ID)
             if (!menuEl || !buttonEl) return
             const focusables: HTMLElement[] = [
                 buttonEl,
@@ -91,6 +102,9 @@ export const Hamburger: m.ClosureComponent = () => {
             window.removeEventListener("scroll", checkScroll)
             window.removeEventListener("resize", checkScroll)
             window.removeEventListener("keydown", onKeydown)
+            // Release the scroll lock if the route swaps while the menu is
+            // still open, so the next view inherits a clean body style.
+            setBodyScrollLock(false)
         },
 
         view() {
@@ -98,7 +112,7 @@ export const Hamburger: m.ClosureComponent = () => {
             const buttonClass = [styles.button, expanded ? styles.buttonExpanded : ""].filter(Boolean).join(" ")
             const menuClass = [styles.menu, expanded ? styles.menuVisible : ""].filter(Boolean).join(" ")
 
-            return m("nav", { class: containerClass }, [
+            return m("nav", { class: containerClass, "aria-label": "Mobile menu" }, [
                 m("button", {
                     type: "button",
                     class: buttonClass,
@@ -107,7 +121,10 @@ export const Hamburger: m.ClosureComponent = () => {
                     "aria-label": expanded ? "Close menu" : "Open menu",
                     oncreate(vnode: m.VnodeDOM) { buttonEl = vnode.dom as HTMLElement },
                     onremove() { buttonEl = null },
-                    onclick() { expanded = !expanded },
+                    onclick() {
+                        expanded = !expanded
+                        setBodyScrollLock(expanded)
+                    },
                 }, m("span")),
 
                 m("ul", {
@@ -119,6 +136,8 @@ export const Hamburger: m.ClosureComponent = () => {
                     // window the links are still DOM-focusable without this.
                     "aria-hidden": expanded ? undefined : "true",
                     inert: expanded ? undefined : true,
+                    oncreate(vnode: m.VnodeDOM) { menuEl = vnode.dom as HTMLElement },
+                    onremove() { menuEl = null },
                 },
                     MENU_LINKS.map((link, index) =>
                         m("li", {
@@ -131,12 +150,16 @@ export const Hamburger: m.ClosureComponent = () => {
                                     onclick(event: MouseEvent) {
                                         event.preventDefault()
                                         expanded = false
+                                        setBodyScrollLock(false)
                                         window.scrollTo({ top: 0, behavior: "smooth" })
                                     },
                                 }, link.label)
                                 : m(m.route.Link, {
                                     href: link.href,
-                                    onclick() { expanded = false },
+                                    onclick() {
+                                        expanded = false
+                                        setBodyScrollLock(false)
+                                    },
                                 }, link.label),
                         ),
                     ),

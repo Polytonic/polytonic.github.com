@@ -43,7 +43,6 @@ export const ProjectCard: m.Component<ProjectCardAttrs> = {
                                     "aria-disabled": "true",
                                     tabindex: "0",
                                     "aria-label": `${label} unavailable: ${reason}`,
-                                    title: reason,
                                     onkeydown(event: KeyboardEvent) {
                                         // Space on a focused role=button span defaults to page scroll.
                                         // aria-disabled means no activation, so swallow the key.
