@@ -5,7 +5,7 @@ Personal website and blog. A Mithril SPA with build-time content compilation, de
 ## Stack
 
 - Mithril 2 + TypeScript. Parcel bundles, Bun installs and runs.
-- Content authored as Markdown with YAML frontmatter. `scripts/build-content.ts` compiles posts and portfolio items into static TypeScript modules, emits `feed.xml` and `rss.xml`, and copies media into `dist/`.
+- Content authored as Markdown with a small frontmatter subset. `scripts/build-content.ts` compiles posts and portfolio items into static TypeScript modules, emits `feed.xml` and `rss.xml`, and copies media into `dist/`.
 - Syntax highlighting runs at build time via highlight.js (a11y-dark theme), so the client ships pre-tokenized HTML with no runtime highlighter.
 
 ## Development
@@ -30,7 +30,7 @@ bun run typecheck  # tsc --noEmit
   Post body here...
   ```
 
-- Portfolio items: `content/portfolio/<slug>/entry.md`. Asset directories and shared PDFs live under `content/portfolio/` alongside the slug folders.
+- Portfolio items: `content/portfolio/<slug>.md`. Asset directories and shared PDFs live under `content/portfolio/`.
 
 ## Deploy
 

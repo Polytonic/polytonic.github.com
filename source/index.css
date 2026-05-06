@@ -3,10 +3,10 @@
 body { margin: 0; }
 input, button, select, textarea { font: inherit; }
 
-/* Design tokens: Grolleg color scheme. Interactive variants derive from the
+/* Design tokens: TinyCranes color system. Interactive variants derive from the
    base accent via color-mix so a future dark-mode swap only changes the base.
-   Hover darkens (not lightens) because accent is used as foreground on a
-   cream background; lightening would drop contrast below WCAG AA (4.5:1). */
+   Hover darkens instead of lightening because accent is used as foreground on a
+   cream background. Lightening would drop contrast below WCAG AA (4.5:1). */
 :root {
     --color-accent: #386B8C;
     --color-accent-hover: color-mix(in srgb, var(--color-accent) 92%, black);

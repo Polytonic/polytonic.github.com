@@ -99,7 +99,7 @@ function normalizePortfolioLink(value: string): string {
     return `/portfolio/${value}`
 }
 
-// Front matter parser: splits YAML header from markdown body
+// Frontmatter parsing should cover the repo-authored subset without adding a YAML dependency.
 function parseFrontMatter(raw: string): { attributes: Record<string, unknown>; body: string } {
     const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
     if (!match) return { attributes: {}, body: raw }
@@ -108,7 +108,6 @@ function parseFrontMatter(raw: string): { attributes: Record<string, unknown>; b
     const body = match[2]!
     const attributes: Record<string, unknown> = {}
 
-    // Parse YAML key-value pairs, including nested maps (for links)
     let currentKey: string | null = null
     let nestedMap: Record<string, string> | null = null
 
@@ -137,7 +136,7 @@ function parseFrontMatter(raw: string): { attributes: Record<string, unknown>; b
                 currentKey = key
                 nestedMap = {}
             } else {
-                attributes[key] = value
+                attributes[key] = parseFrontMatterValue(value)
             }
         }
     }
@@ -148,6 +147,12 @@ function parseFrontMatter(raw: string): { attributes: Record<string, unknown>; b
     }
 
     return { attributes, body }
+}
+
+function parseFrontMatterValue(value: string): string | boolean {
+    if (value === "true") return true
+    if (value === "false") return false
+    return value
 }
 
 // Slugify a title string
@@ -240,8 +245,9 @@ function buildPosts(): Post[] {
 
         const description = summarizeForFeed(body)
 
-        // Auto-generate preview for long posts (render first paragraph as HTML)
-        const previewHtml = body.length > 1500
+        const shouldGeneratePreview = attributes.preview !== false && body.length > 1500
+        // Long posts should preview with their rendered first paragraph unless frontmatter opts out.
+        const previewHtml = shouldGeneratePreview
             ? rewriteLinks(marked.parse(body.split(/\n\s*\n/)[0] ?? "", { async: false }))
             : null
 

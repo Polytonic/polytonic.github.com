@@ -87,6 +87,7 @@ document.addEventListener("click", (event) => {
 
     event.preventDefault()
     m.route.set(canonicalPath(path) + url.search + url.hash)
+    if (url.hash) scheduleHashScroll(url.hash)
 })
 
 // Per-route document metadata
@@ -98,7 +99,54 @@ interface PageMeta {
 
 const CANONICAL_ORIGIN = "https://www.tinycranes.com"
 const DEFAULT_DESCRIPTION = "Software design and development. I build things."
-const DEFAULT_IMAGE = "/og-image.png"
+const DEFAULT_IMAGE = "/avatar.jpg"
+
+function decodeHashTarget(hash: string): string | null {
+    if (!hash.startsWith("#") || hash.length === 1) return null
+    const target = hash.slice(1)
+    try {
+        return decodeURIComponent(target)
+    } catch {
+        return target
+    }
+}
+
+function findHashTarget(id: string): HTMLElement | null {
+    const byId = document.getElementById(id)
+    if (byId) return byId
+
+    for (const element of document.getElementsByName(id)) {
+        if (element instanceof HTMLElement) return element
+    }
+    return null
+}
+
+// Hash targets in routed markdown should scroll after Mithril renders the
+// destination component. Retry briefly so direct loads and same-route hash
+// navigation both land on authored anchors.
+function scheduleHashScroll(hash: string = window.location.hash): void {
+    const targetId = decodeHashTarget(hash)
+    if (!targetId) return
+    const id = targetId
+
+    let attempts = 0
+    const maxAttempts = 10
+
+    function scrollWhenReady(): void {
+        const target = findHashTarget(id)
+        if (target) {
+            target.scrollIntoView()
+            return
+        }
+
+        attempts += 1
+        if (attempts < maxAttempts) window.requestAnimationFrame(scrollWhenReady)
+    }
+
+    window.requestAnimationFrame(scrollWhenReady)
+}
+
+window.addEventListener("hashchange", () => scheduleHashScroll())
 
 function setPageMeta(info: PageMeta): void {
     const fullTitle = info.title ? `${info.title} \u2022 TinyCranes` : "TinyCranes"
@@ -141,7 +189,11 @@ function scrollRoute<A>(
 ): m.RouteResolver<A> {
     return {
         onmatch(args: A) {
-            if (!window.location.hash) window.scrollTo(0, 0)
+            if (window.location.hash) {
+                scheduleHashScroll()
+            } else {
+                window.scrollTo(0, 0)
+            }
             setPageMeta(meta ? meta(args) : {})
             return component
         },

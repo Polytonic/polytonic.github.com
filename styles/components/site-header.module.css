@@ -5,8 +5,12 @@
 }
 
 .logotype {
-    padding-top: 1rem;
-    margin-left: 1rem;
+    align-items: center;
+    display: flex;
+    height: 100%;
+    margin: 0 auto;
+    max-width: 1024px;
+    width: 90vw;
 }
 
 .logotype p {
