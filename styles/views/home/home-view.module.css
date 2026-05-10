@@ -82,13 +82,11 @@
     text-align: center;
 }
 
-@supports (height: 100lvh) and (height: 100dvh) {
-    .masthead {
-        margin-bottom: max(0px, calc(100lvh - 100dvh));
-    }
-}
-
 @media only screen and (max-width: 640px) {
+    .masthead {
+        margin-bottom: 5rem;
+    }
+
     .spacer {
         display: inline;
     }
@@ -96,5 +94,17 @@
     .heroTitle {
         font-size: 2rem;
         margin-bottom: 7rem;
+    }
+}
+
+@supports (height: 100lvh) and (height: 100dvh) {
+    .masthead {
+        margin-bottom: max(0px, calc(100lvh - 100dvh));
+    }
+
+    @media only screen and (max-width: 640px) {
+        .masthead {
+            margin-bottom: max(5rem, calc(100lvh - 100dvh + 5rem));
+        }
     }
 }
