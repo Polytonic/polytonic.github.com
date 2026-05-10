@@ -10,7 +10,7 @@ const MENU_LINKS = [
 
 const MENU_ID = "hamburger-menu"
 
-// Hamburger navigation: fixed button that appears on scroll, with slide-in menu.
+// Hamburger navigation: fixed button that appears on scroll, with fade-in menu.
 // Closure component so state is per-instance; a second mount (e.g. on the home
 // page, which doesn't go through Layout) gets independent state.
 export const Hamburger: m.ClosureComponent = () => {
@@ -131,18 +131,16 @@ export const Hamburger: m.ClosureComponent = () => {
                     id: MENU_ID,
                     class: menuClass,
                     // aria-hidden + inert keep the menu out of the tab order
-                    // and the a11y tree whenever it's not fully open. The
-                    // visibility transition lasts 400ms, and during that
-                    // window the links are still DOM-focusable without this.
+                    // and the a11y tree as soon as it closes, even while the
+                    // CSS fade finishes.
                     "aria-hidden": expanded ? undefined : "true",
                     inert: expanded ? undefined : true,
                     oncreate(vnode: m.VnodeDOM) { menuEl = vnode.dom as HTMLElement },
                     onremove() { menuEl = null },
                 },
-                    MENU_LINKS.map((link, index) =>
+                    MENU_LINKS.map((link) =>
                         m("li", {
                             key: link.label,
-                            style: expanded ? `animation-delay: ${index * 0.1}s` : undefined,
                         },
                             link.href.startsWith("#")
                                 ? m("a", {

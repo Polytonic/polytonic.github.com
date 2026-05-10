@@ -3,17 +3,13 @@
    the DOM tree. */
 .container {
     --menu-offset: 5vw;
+    --hamburger-motion: 0.18s;
 }
 
 @keyframes bounce {
-    0%   { transform: scale(0.0); }
-    60%  { transform: scale(1.2); }
+    0%   { transform: scale(0.92); }
+    60%  { transform: scale(1.04); }
     100% { transform: scale(1.0); }
-}
-
-@keyframes slide {
-    0%   { transform: translateX(7rem); }
-    100% { transform: translateX(0); }
 }
 
 .container.fixed .menu {
@@ -58,7 +54,7 @@
     top: 50%;
     left: 50%;
     margin: -1px -10px;
-    transition: background var(--duration-slow), transform var(--duration-slow);
+    transition: background var(--hamburger-motion) ease-out, transform var(--hamburger-motion) ease-out;
     transform: rotate(0deg);
 }
 
@@ -70,7 +66,7 @@
     background: var(--color-accent);
     width: 100%;
     height: 100%;
-    transition: transform var(--duration-slow);
+    transition: transform var(--hamburger-motion) ease-out;
 }
 
 .button span::before {
@@ -87,7 +83,7 @@
 .buttonExpanded span {
     background: transparent;
     transform: rotate(180deg);
-    transition: transform var(--duration-slow);
+    transition: transform var(--hamburger-motion) ease-out;
 }
 
 .buttonExpanded span::before {
@@ -100,7 +96,7 @@
     bottom: 0;
 }
 
-/* Slide-in menu */
+/* Menu panel */
 .menu {
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-soft);
@@ -111,9 +107,12 @@
     background-color: var(--color-surface);
     visibility: hidden;
     overflow: hidden;
-    transform: scale(0);
-    transform-origin: 100% 0%;
-    transition: transform var(--duration-slow), visibility var(--duration-slow);
+    opacity: 0;
+    transform: translateY(-0.35rem);
+    transition:
+        opacity var(--hamburger-motion) ease-out,
+        transform var(--hamburger-motion) ease-out,
+        visibility 0s linear var(--hamburger-motion);
     list-style-type: none;
     padding: 0;
     margin: 0;
@@ -122,12 +121,12 @@
 
 .menuVisible {
     visibility: visible;
-    transform: scale(1);
-    transition: transform var(--duration-slow), visibility var(--duration-slow);
-}
-
-.menuVisible li {
-    animation: slide 0.3s ease-out both;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity var(--hamburger-motion) ease-out,
+        transform var(--hamburger-motion) ease-out,
+        visibility 0s linear 0s;
 }
 
 /* Menu links */
@@ -163,24 +162,18 @@
     .button {
         visibility: hidden;
         transform: scale(0);
-        transition: transform var(--duration-slow), visibility var(--duration-slow);
+        transition:
+            transform var(--hamburger-motion) ease-out,
+            visibility 0s linear var(--hamburger-motion);
     }
 
     .fixed .button {
         visibility: visible;
         transform: scale(1);
-        animation: bounce var(--duration-slow) ease-in-out;
-        transition: transform var(--duration-slow), visibility var(--duration-slow);
-    }
-}
-
-/* Reduced-motion: drop the per-item slide so links don't flash through
-   their entrance staircase one frame at a time. The global transition/
-   animation-duration override at index.css clamps to 0.01ms but keeps
-   animation-delay intact, which leaves a perceptible cascade otherwise. */
-@media (prefers-reduced-motion: reduce) {
-    .menuVisible li {
-        animation: none;
+        animation: bounce var(--hamburger-motion) ease-out;
+        transition:
+            transform var(--hamburger-motion) ease-out,
+            visibility 0s linear 0s;
     }
 }
 
