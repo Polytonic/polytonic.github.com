@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <!-- Deploy base. Defaults to "/" for custom-domain (root) deploys. The
-         GitHub Pages workflow rewrites this to "/<repo>/" for project-page
-         deploys so the SPA's router knows the URL prefix. The asset paths
-         themselves are baked at build time via parcel's --public-url flag. -->
+    <!-- Deploy base. The user-site build serves from "/". Parcel bakes
+         asset paths at build time via the --public-url flag. -->
     <meta name="app-base" content="/">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://www.shadertoy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,8 +22,7 @@
     <meta name="twitter:description" content="Software design and development. I build things.">
     <meta name="twitter:image" content="https://www.tinycranes.com/avatar.jpg">
     <title>TinyCranes</title>
-    <!-- Canonical anchors search-index entries to the custom-domain origin
-         even when the artifact is also reachable at the github.io subpath. -->
+    <!-- Canonical anchors search-index entries to the custom-domain origin. -->
     <link rel="canonical" href="https://www.tinycranes.com">
     <link rel="alternate" type="application/rss+xml" title="TinyCranes RSS" href="https://www.tinycranes.com/feed.xml">
     <link rel="stylesheet" href="index.css">

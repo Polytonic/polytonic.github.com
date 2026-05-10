@@ -31,31 +31,12 @@ jobs:
 
             - run: bun install --frozen-lockfile
 
-            # A CNAME file at the repo root signals a custom-domain deploy
-            # (assets at "/"). Without one, GitHub Pages serves the project
-            # at "/<repo>/", so the build needs --public-url and the SPA's
-            # router needs a matching prefix.
-            - name: Pick deploy public URL
-              id: pub
-              run: |
-                  if [ -f CNAME ] && [ -s CNAME ]; then
-                      echo "url=/" >> "$GITHUB_OUTPUT"
-                  else
-                      echo "url=/${GITHUB_REPOSITORY##*/}/" >> "$GITHUB_OUTPUT"
-                  fi
+            # polytonic.github.io is a GitHub Pages user site, so Pages serves
+            # this artifact from the domain root at www.tinycranes.com.
+            - run: bun run build -- --public-url /
 
-            - run: bun run build -- --public-url '${{ steps.pub.outputs.url }}'
-
-            - name: Sync app-base meta to deploy URL
-              run: |
-                  # parcel minifies content="/" to a quote-less content=/. Match
-                  # the closing > to anchor the substitution and re-emit a quoted
-                  # value so the result reads cleanly regardless of deploy URL.
-                  sed -i 's|name=app-base content=/>|name=app-base content="${{ steps.pub.outputs.url }}">|' dist/index.html
-
-            - name: Copy CNAME into the artifact
-              run: |
-                  if [ -f CNAME ] && [ -s CNAME ]; then cp CNAME dist/CNAME; fi
+            - name: Write CNAME into the artifact
+              run: printf '%s\n' 'www.tinycranes.com' > dist/CNAME
 
             # SPA fallback: GitHub Pages serves 404.html for unknown paths,
             # which lets Mithril's router handle deep links on direct load.

@@ -36,14 +36,7 @@ bun run typecheck  # tsc --noEmit
 
 Pushes to `master` trigger `.github/workflows/deploy.yml`. The workflow builds with Bun and publishes `dist/` to GitHub Pages. `index.html` is copied to `404.html` so the SPA handles deep links on direct load.
 
-A single artifact serves both deployment targets. The workflow checks for a `CNAME` file at the repo root: if present, it builds with `--public-url /` and copies the file into the artifact so Pages serves at the custom domain. If absent, it builds with `--public-url /<repo>/` for the project-page subpath. The `<meta name="app-base">` in `index.html` is rewritten to match, and `source/with-base.ts` reads it at runtime to set Mithril's route prefix and prefix any root-absolute paths constructed at runtime.
-
-To switch from project-page to custom domain:
-1. Create a `CNAME` file at the repo root containing the apex or subdomain (e.g., `www.tinycranes.com`).
-2. Configure DNS:
-   - `CNAME` record `www` → `<github-username>.github.io`
-   - `A` records for the apex pointing at `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-3. Push. The workflow detects the CNAME, ships it, and serves at the custom domain. The github.io URL begins redirecting once the cert is provisioned.
+This is the `polytonic.github.io` GitHub Pages user-site repository. Pages serves it from `/`, and the custom domain is `www.tinycranes.com`. The workflow builds with `--public-url /` and writes `dist/CNAME` into the Pages artifact, keeping asset paths and the SPA route base rooted at `/`.
 
 ## License
 

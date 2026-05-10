@@ -14,9 +14,9 @@ import { posts } from "./content/posts"
 import { latestPostUrl } from "./content/queries"
 import { APP_BASE_PREFIX, stripBase } from "./with-base"
 
-// Mithril history-mode routing. With a prefix set, m.route.set("/blog/")
-// pushes "/<repo>/blog/" to the URL, and incoming "/<repo>/blog/" matches
-// the "/blog/" pattern.
+// Mithril history-mode routing. With a non-root prefix set, m.route.set("/blog/")
+// pushes that prefix onto the URL, and incoming prefixed paths match the
+// "/blog/" pattern.
 m.route.prefix = APP_BASE_PREFIX
 
 // Canonical URL form is trailing-slash (matches the pre-migration site and the
@@ -172,8 +172,7 @@ function setPageMeta(info: PageMeta): void {
     }
 
     // <link rel="canonical"> uses href, not content. Updated separately so
-    // search engines indexing the github.io URL during the DNS-transition
-    // window are pointed at the custom-domain origin.
+    // route changes keep page metadata anchored to the custom-domain origin.
     document.querySelector('link[rel="canonical"]')?.setAttribute("href", canonical)
 }
 

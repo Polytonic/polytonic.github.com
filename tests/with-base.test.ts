@@ -2,17 +2,17 @@ import { describe, expect, test } from "bun:test"
 import { buildPrefix, joinBase, trimBase, rewritePathsIn } from "../source/with-base"
 
 // buildPrefix collapses the meta value "/" to an empty string and strips a
-// single trailing slash off subpath bases.
+// single trailing slash off non-root bases.
 describe("buildPrefix", () => {
     test("root deploy → empty prefix", () => {
         expect(buildPrefix("/")).toBe("")
     })
 
-    test("subpath deploy → strips trailing slash", () => {
-        expect(buildPrefix("/TinyCranes/")).toBe("/TinyCranes")
+    test("non-root base strips trailing slash", () => {
+        expect(buildPrefix("/site/")).toBe("/site")
     })
 
-    test("nested subpath", () => {
+    test("nested base", () => {
         expect(buildPrefix("/foo/bar/")).toBe("/foo/bar")
     })
 })
@@ -25,48 +25,48 @@ describe("joinBase", () => {
     })
 
     test("root-absolute internal path gets prefixed", () => {
-        expect(joinBase("/TinyCranes", "/avatar.jpg")).toBe("/TinyCranes/avatar.jpg")
-        expect(joinBase("/TinyCranes", "/blog/post/")).toBe("/TinyCranes/blog/post/")
+        expect(joinBase("/site", "/avatar.jpg")).toBe("/site/avatar.jpg")
+        expect(joinBase("/site", "/blog/post/")).toBe("/site/blog/post/")
     })
 
     test("relative path is untouched", () => {
-        expect(joinBase("/TinyCranes", "blog/post/")).toBe("blog/post/")
-        expect(joinBase("/TinyCranes", "")).toBe("")
+        expect(joinBase("/site", "blog/post/")).toBe("blog/post/")
+        expect(joinBase("/site", "")).toBe("")
     })
 
     test("protocol-relative URL is untouched", () => {
-        expect(joinBase("/TinyCranes", "//cdn.example.com/script.js")).toBe("//cdn.example.com/script.js")
+        expect(joinBase("/site", "//cdn.example.com/script.js")).toBe("//cdn.example.com/script.js")
     })
 
     test("absolute http(s) URL contains no leading slash so passes through", () => {
-        expect(joinBase("/TinyCranes", "https://example.com/x")).toBe("https://example.com/x")
+        expect(joinBase("/site", "https://example.com/x")).toBe("https://example.com/x")
     })
 })
 
 // trimBase strips the prefix from a pathname. The router uses this to map
-// a subpath URL like "/TinyCranes/blog/" back to the logical "/blog/" route.
+// a configured base like "/site/blog/" back to the logical "/blog/" route.
 describe("trimBase", () => {
     test("empty prefix returns the input unchanged", () => {
         expect(trimBase("", "/blog/")).toBe("/blog/")
     })
 
     test("matching prefix is sliced off", () => {
-        expect(trimBase("/TinyCranes", "/TinyCranes/blog/post/")).toBe("/blog/post/")
+        expect(trimBase("/site", "/site/blog/post/")).toBe("/blog/post/")
     })
 
     test("prefix with no remaining path returns root", () => {
-        expect(trimBase("/TinyCranes", "/TinyCranes/")).toBe("/")
-        expect(trimBase("/TinyCranes", "/TinyCranes")).toBe("/")
+        expect(trimBase("/site", "/site/")).toBe("/")
+        expect(trimBase("/site", "/site")).toBe("/")
     })
 
     test("non-prefixed path passes through", () => {
-        expect(trimBase("/TinyCranes", "/blog/")).toBe("/blog/")
+        expect(trimBase("/site", "/blog/")).toBe("/blog/")
     })
 })
 
 // rewritePathsIn prefixes root-absolute src and href values inside an HTML
 // string. Markdown content compiled at build time emits "/uploads/..." paths
-// without knowledge of the deploy URL; this fixes them at render time.
+// without knowledge of the deploy URL. This fixes them at render time.
 describe("rewritePathsIn", () => {
     test("empty prefix is a no-op", () => {
         const html = `<img src="/uploads/foo.png"><a href="/blog/">Blog</a>`
@@ -75,18 +75,18 @@ describe("rewritePathsIn", () => {
 
     test("rewrites src and href", () => {
         const html = `<img src="/uploads/foo.png"><a href="/blog/">Blog</a>`
-        const expected = `<img src="/TinyCranes/uploads/foo.png"><a href="/TinyCranes/blog/">Blog</a>`
-        expect(rewritePathsIn("/TinyCranes", html)).toBe(expected)
+        const expected = `<img src="/site/uploads/foo.png"><a href="/site/blog/">Blog</a>`
+        expect(rewritePathsIn("/site", html)).toBe(expected)
     })
 
     test("leaves protocol-relative URLs alone", () => {
         const html = `<img src="//cdn.example.com/img.png">`
-        expect(rewritePathsIn("/TinyCranes", html)).toBe(html)
+        expect(rewritePathsIn("/site", html)).toBe(html)
     })
 
     test("leaves http(s) absolute URLs alone", () => {
         const html = `<a href="https://example.com/x">link</a><img src="https://cdn.example.com/x.png">`
-        expect(rewritePathsIn("/TinyCranes", html)).toBe(html)
+        expect(rewritePathsIn("/site", html)).toBe(html)
     })
 
     test("handles multiple replacements in one document", () => {

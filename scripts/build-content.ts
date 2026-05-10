@@ -471,7 +471,7 @@ function copyStaticAssets(): void {
 // blog archive, portfolio, and one entry per post. Filtered-archive routes
 // are skipped since their content is the same posts under different filters.
 // All URLs use https://www.tinycranes.com because that is the site's canonical
-// origin regardless of where this build is deployed (subpath vs root).
+// origin.
 const CANONICAL_ORIGIN = "https://www.tinycranes.com"
 
 function buildSitemap(posts: Post[]): void {

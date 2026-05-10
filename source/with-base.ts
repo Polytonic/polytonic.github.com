@@ -1,16 +1,17 @@
-// Deploy-base helpers. The <meta name="app-base"> in index.html starts as
-// "/" and the GitHub Pages workflow rewrites it to "/<repo>/" for project-
-// page (subpath) deploys. Components use withBase() when constructing root-
-// absolute internal paths so a single build serves both root and subpath
-// targets cleanly. rewriteMarkdownPaths() does the same for author-rendered
-// HTML strings, where path construction has already happened at build time.
+// Deploy-base helpers. The <meta name="app-base"> in index.html stays "/"
+// because this is the polytonic.github.io GitHub Pages user site, served from
+// the domain root with www.tinycranes.com as its custom domain. Components use
+// withBase() when constructing root-absolute internal paths so runtime paths
+// follow the configured app base. rewriteMarkdownPaths() does the same for
+// author-rendered HTML strings, where path construction has already happened
+// at build time.
 //
 // The pure helpers (buildPrefix, joinBase, trimBase, rewritePathsIn) take
 // the prefix as a parameter so tests can exercise them without a DOM. The
 // module-level exports below bind them to APP_BASE_PREFIX read from the
 // page's <meta> tag at load time.
 
-// Pure helpers — no DOM, safe to import in tests.
+// Pure helpers should stay DOM-free so tests can import them safely.
 
 export function buildPrefix(base: string): string {
     return base === "/" ? "" : base.slice(0, -1)
